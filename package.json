@@ -1,0 +1,28 @@
+{
+  "name": "hideout",
+  "version": "0.0.1",
+  "description": "A really simple project scaffolding tool",
+  "main": "hideout.js",
+  "bin": {
+    "hideout": "hideout.js"
+  },
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "test": "mocha"
+  },
+  "keywords": [
+    "scaffolding"
+  ],
+  "author": "Nagy Zoltan <tunderdomb@gmail.com> (tunderdomb)",
+  "license": "MIT",
+  "devDependencies": {
+    "grunt": "~0.4.4",
+    "glob": "~3.2.9",
+    "async": "~0.2.10",
+    "mkdirp": "~0.3.5",
+    "inquirer": "~0.4.1",
+    "minimist": "0.0.8"
+  }
+}
