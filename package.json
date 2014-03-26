@@ -4,7 +4,7 @@
   "description": "A really simple project scaffolding tool",
   "main": "hideout.js",
   "bin": {
-    "hideout": "hideout.js"
+    "hideout": "bin/hideout.js"
   },
   "directories": {
     "test": "test"
