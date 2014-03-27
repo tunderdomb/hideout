@@ -5,29 +5,33 @@ var glob = require("glob")
 var cwd = process.cwd()
 var argv = require('minimist')(process.argv.slice(2))
 var inquirer = require("inquirer")
+var async = require("async")
 
 var hideout = require("../hideout")
 
 var task = argv._[0]
 
 if( task ) hideout(task)
-else glob(path.join(__dirname, "../builtins/*/"), {}, function ( err, builtins ){
-  glob(path.join(__dirname, "../../hideout-*/"), {}, function ( err, plugins ){
-    plugins = ["Built in plugins", new inquirer.Separator()]
-      .concat(builtins)
-      .concat(["", "Custom plugins", new inquirer.Separator()])
-      .concat(plugins)
-      .map(function( plugin ){
+else {
+  async.concat([
+    path.join(__dirname, "../builtins/*/"),
+    path.join(cwd, "../node_modules/hideout-*/"),
+    path.join(__dirname, "../../hideout-*/")
+  ], function( pattern, next ){
+    glob(pattern, {}, function( err, files ){
+      next(null, files.map(function( plugin ){
         return path.basename(plugin)
-      })
+      }))
+    })
+  }, function( err, plugins ){
     inquirer.prompt([{
       type: "list",
       name: "plugin",
       message: "Select a plugin",
-      default: "hideout",
+      default: plugins[0],
       choices: plugins
     }], function( options ){
       hideout(options.plugin)
     })
   })
-})
+}

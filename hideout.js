@@ -1,4 +1,5 @@
 var path = require("path")
+var exec = require("child_process").exec
 var fs = require("fs")
 var async = require("async")
 var mkdirp = require("mkdirp")
@@ -7,12 +8,12 @@ var inquirer = require("inquirer")
 
 var cwd = process.cwd()
 
-module.exports = function( plugin ){
-  switch( plugin ){
+module.exports = function ( plugin ){
+  switch ( plugin ) {
     case "hideout":
     case "Gruntplugin":
     case "npm-module":
-      require(path.join(__dirname, "builtins/"+plugin+"/hideout.js"))(new Hideout())
+      require(path.join(__dirname, "builtins/" + plugin + "/hideout.js"))(new Hideout())
       break
     default:
       require(plugin)(new Hideout())
@@ -60,8 +61,8 @@ Hideout.prototype.start = function ( done ){
   this.next()
 }
 
-Hideout.prototype.next = function(  ){
-  if( this.q.length ) {
+Hideout.prototype.next = function (){
+  if ( this.q.length ) {
     this.q.shift()(this)
   }
   else {
@@ -69,13 +70,13 @@ Hideout.prototype.next = function(  ){
   }
 }
 
-Hideout.prototype.queue = function( filter, task ){
-  this.q.push(function( H ){
-    if ( !filter || filter && filter(H .options) ) task(function(  ){
+Hideout.prototype.queue = function ( filter, task ){
+  this.q.push(function ( H ){
+    if ( !filter || filter && filter(H.options) ) task(function (){
       H.next()
     })
   })
-  return this 
+  return this
 }
 
 Hideout.prototype.log = function ( msg, filter ){
@@ -96,7 +97,7 @@ Hideout.prototype.warn = function ( msg, filter ){
 
 Hideout.prototype.prompt = function ( questions, filter ){
   var H = this
-  return this.queue(filter, function( done ){
+  return this.queue(filter, function ( done ){
     inquirer.prompt(questions, function ( answers ){
       extend(H.options, answers)
       done()
@@ -155,8 +156,8 @@ Hideout.prototype.selectMultiple = function ( questions, filter ){
  * */
 Hideout.prototype.copy = function ( src, dest, filter ){
   return this.queue(filter, function ( done ){
-    glob(src, {}, function(  err, files ){
-      async.each(files, function( file, next ){
+    glob(src, {}, function ( err, files ){
+      async.each(files, function ( file, next ){
         fs.rename(file, dest, function ( err ){
           next()
         })
@@ -166,13 +167,6 @@ Hideout.prototype.copy = function ( src, dest, filter ){
 }
 
 Hideout.prototype.process = function ( src, dest, process, filter ){
-  var H = this
-  return this.queue(filter, function ( done ){
-    done()
-  })
-}
-
-Hideout.prototype.run = function ( cmd, filter ){
   var H = this
   return this.queue(filter, function ( done ){
     done()
@@ -196,8 +190,71 @@ Hideout.prototype.readJSON = function ( src, process, filter ){
 Hideout.prototype.make = function ( dirs, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    async.each(dirs, function( dir, next ){
+    async.each(dirs, function ( dir, next ){
       mkdirp(dir, next)
     }, done)
+  })
+}
+
+Hideout.prototype.run = function ( cmd, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    done()
+  })
+}
+
+Hideout.prototype.run = function ( cmd, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    exec(cmd, function ( err, stdout, stderr ){
+      console.log(stdout)
+      console.log(stderr)
+      if ( err !== null ) {
+        console.log('exec error: ' + err)
+      }
+      done()
+    })
+  })
+}
+
+Hideout.prototype.package = function ( json, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    fs.writeFile(toCwd("package.json"), JSON.stringify(json, null, "  "), function( err ){
+      done()
+    })
+  })
+}
+
+Hideout.prototype.npmInstall = function ( packages, options, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    var cmd = "npm install"
+      + (packages.length ? " " + packages.join(" ") : "")
+      + (options ? " " + options : "")
+    exec(cmd, function ( err, stdout, stderr ){
+      console.log(stdout)
+      console.log(stderr)
+      if ( err !== null ) {
+        console.log('exec error: ' + err)
+      }
+      done()
+    })
+  })
+}
+
+Hideout.prototype.gitInit = function ( options, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    var cmd = "git init"
+      + (options || "")
+    exec(cmd, function ( err, stdout, stderr ){
+      console.log(stdout)
+      console.log(stderr)
+      if ( err !== null ) {
+        console.log('exec error: ' + err)
+      }
+      done()
+    })
   })
 }
