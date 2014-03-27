@@ -1,16 +1,13 @@
 {
   "name": "hideout",
-  "version": "0.0.1",
-  "description": "A really simple project scaffolding tool",
+  "version": "0.0.2",
+  "description": "Minimal project scaffolding",
   "main": "hideout.js",
   "bin": {
     "hideout": "bin/hideout.js"
   },
   "directories": {
     "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
   },
   "keywords": [
     "scaffolding"

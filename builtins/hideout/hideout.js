@@ -1,65 +1,69 @@
 module.exports = function( hideout ){
 
   hideout
-    .ask({
-      name: "ask",
-      message: "Ask",
-      'default': "no title"
-    }, function( options ){
-      return true
-    })
-    .confirm({
-      name: "confirm",
-      message: "Confirm:",
-      'default': true
-    }, function( options ){
-      return true
-    })
-    .select({
-      name: "select",
-      message: "Select:",
-      'default': "bar",
-      choices: [ "foo", "bar", "bum" ]
-    }, function( options ){
-      return true
-    })
-    .selectMultiple({
-      name: "selectMultiple",
-      message: "Select Multiple",
-      'default': "bar",
-      choices: [ "foo", "bar", "bum" ]
-    }, function( options ){
-      return true
-    })
-    .queue(function( options ){
-      return options.confirm
-    }, function( done ){
-      console.log("hello")
-      done()
-    })
-//    .copy("src", "dest", function( options ){
-//      return true
+//    .ask({
+//      name: "ask",
+//      message: "Ask",
+//      'default': "no title"
 //    })
-//    .process("src", "dest", function( content ){
-//      return content
-//    }, function( options ){
-//      return true
+//    .confirm({
+//      name: "confirm",
+//      message: "Confirm:",
+//      'default': true
 //    })
-//    .run("command", function( options ){
-//      return true
+//    .select({
+//      name: "select",
+//      message: "Select:",
+//      'default': "bar",
+//      choices: [ "foo", "bar", "bum" ]
 //    })
-//    .read("src", function( content ){
-//      return content
-//    }, function( options ){
-//      return true
+//    .selectMultiple({
+//      name: "selectMultiple",
+//      message: "Select Multiple",
+//      'default': "bar",
+//      choices: [ "foo", "bar", "bum" ]
 //    })
-//    .readJSON("src", function( content ){
-//      return content
-//    }, function( options ){
-//      return true
+//    .queue(function( options ){
+//      return options.confirm
+//    }, function( done ){
+//      console.log("queue")
+//      done()
 //    })
-    .start(function( options ){
-      console.log(options)
+//    .copy({
+//      src: "files/*.*",
+//      dest: "",
+//      rename: function( dest ){
+//        return dest
+//      },
+//      process: function( content ){
+//        return content
+//      }
+//    })
+//    .read("files/hideout.js", function( err, content, options, done ){
+//      console.log(content)
+//      done()
+//    })
+//    .readJSON("package.json", function( err, content, options, done ){
+//      console.log(content)
+//      done()
+//    })
+//    .package({
+//      name: "hello"
+//    })
+//    .writeJSON("bower.json", {
+//      name: "hello"
+//    })
+//    .make(["src"])
+//    .run("dir", function( err, stdout, stderr ){
+//      console.log(stdout)
+//      console.log(stderr)
+//      if ( err !== null ) {
+//        console.log('exec error: ' + err)
+//      }
+//    })
+//    .npmInstall(["mkdirp"])
+    .start(__dirname, function( options ){
+      console.log("Finished: ", options)
     })
 
 }

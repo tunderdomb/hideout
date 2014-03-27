@@ -56,7 +56,8 @@ function Hideout(){
 
 Hideout.prototype = {}
 
-Hideout.prototype.start = function ( done ){
+Hideout.prototype.start = function ( dir, done ){
+  this.pluginDir = dir
   this.done = done
   this.next()
 }
@@ -150,40 +151,90 @@ Hideout.prototype.selectMultiple = function ( questions, filter ){
 }
 
 /**
- * @param src{String} source files globbing pattern
- * @param dest{String} dest directory path
- * @param [filter]{String} filter callback
+ * @param options{Object}
+ * @param [filter]{Function}
+ * @param options.src{String} glob pattern for files to copy/process
+ * @param [options.dest]{String} destination path. Default: ""
+ * @param [options.flatten]{String} remove directory parts from files
+ * @param [options.rename]{String} overwrite file path
+ * @param [options.process]{String} process file along the way
  * */
-Hideout.prototype.copy = function ( src, dest, filter ){
-  return this.queue(filter, function ( done ){
-    glob(src, {}, function ( err, files ){
-      async.each(files, function ( file, next ){
-        fs.rename(file, dest, function ( err ){
-          next()
-        })
-      }, done)
-    })
-  })
-}
-
-Hideout.prototype.process = function ( src, dest, process, filter ){
+Hideout.prototype.copy = function ( options, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    done()
+    var dest = options.dest || ""
+    // collect files
+    glob(options.src, {
+      cwd: H.pluginDir
+    }, function ( err, files ){
+      // iterate them
+      async.each(files, function ( file, next ){
+        // dest path for current file
+        var target = path.join(cwd, dest, file)
+        // src path for current
+        file = path.join(H.pluginDir, file)
+        // flatten
+        if ( options.flatten ) {
+          target = path.join(cwd, dest, path.basename(file))
+        }
+        // rename
+        if ( options.rename ) {
+          target = options.rename(target)
+        }
+        // process
+        if ( options.process ) {
+          console.log("Process:", file, "->", target)
+          mkdirp(path.dirname(target), function(  ){
+            fs.readFile(file, "utf8", function( err, data ){
+              fs.writeFile(target, options.process(data), "utf8")
+              next()
+            })
+          })
+        }
+        // copy
+        else {
+          console.log("Copy:", file, "->", target)
+          mkdirp(path.dirname(target), function(  ){
+            fs.createReadStream(file)
+              .pipe(fs.createWriteStream(target))
+            next()
+          })
+        }
+      }, done)
+    })
   })
 }
 
 Hideout.prototype.read = function ( src, process, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    done()
+    fs.readFile(src, "utf8", function( err, data ){
+      process(err, data, H.options, done)
+    })
   })
 }
 
 Hideout.prototype.readJSON = function ( src, process, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    done()
+    fs.readFile(src, "utf8", function( err, data ){
+      try{
+        process(err, JSON.parse(data), H.options, done)
+      }
+      catch ( e ){
+        process(e, null, H.options, done)
+      }
+    })
+  })
+}
+
+Hideout.prototype.writeJSON = function ( dest, obj, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    console.log("Write JSON:", dest)
+    fs.writeFile(path.join(cwd, dest), JSON.stringify(obj, null, "  "), function( err ){
+      done()
+    })
   })
 }
 
@@ -191,47 +242,58 @@ Hideout.prototype.make = function ( dirs, filter ){
   var H = this
   return this.queue(filter, function ( done ){
     async.each(dirs, function ( dir, next ){
+      console.log("Make dir:", dir)
       mkdirp(dir, next)
     }, done)
   })
 }
 
-Hideout.prototype.run = function ( cmd, filter ){
+Hideout.prototype.run = function ( cmd, result, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    done()
+    console.log("Executing: ", "'"+cmd+"'")
+    exec(cmd, function ( err, stdout, stderr ){
+      result(err, stdout, stderr)
+      done()
+    })
   })
 }
 
-Hideout.prototype.run = function ( cmd, filter ){
+Hideout.prototype.runBatch = function ( commands, result, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    exec(cmd, function ( err, stdout, stderr ){
-      console.log(stdout)
-      console.log(stderr)
-      if ( err !== null ) {
-        console.log('exec error: ' + err)
-      }
-      done()
-    })
+    async.each(commands, function( cmd, next ){
+      console.log("Executing: ", "'"+cmd+"'")
+      exec(cmd, function ( err, stdout, stderr ){
+        result(err, stdout, stderr)
+        next()
+      })
+    }, done)
   })
 }
 
 Hideout.prototype.package = function ( json, filter ){
   var H = this
   return this.queue(filter, function ( done ){
-    fs.writeFile(toCwd("package.json"), JSON.stringify(json, null, "  "), function( err ){
+    console.log("Write package.json..")
+    fs.writeFile(path.join(cwd, "package.json"), JSON.stringify(json, null, "  "), function( err ){
       done()
     })
   })
 }
 
+/**
+ * @param packages{String[]}
+ * @param [options]{Object}
+ * @param [filter]{Function}
+ * */
 Hideout.prototype.npmInstall = function ( packages, options, filter ){
   var H = this
   return this.queue(filter, function ( done ){
     var cmd = "npm install"
       + (packages.length ? " " + packages.join(" ") : "")
       + (options ? " " + options : "")
+    console.log("Installing npm modules: ", packages.join(" "))
     exec(cmd, function ( err, stdout, stderr ){
       console.log(stdout)
       console.log(stderr)
@@ -248,6 +310,7 @@ Hideout.prototype.gitInit = function ( options, filter ){
   return this.queue(filter, function ( done ){
     var cmd = "git init"
       + (options || "")
+    console.log("Initializing git repository..")
     exec(cmd, function ( err, stdout, stderr ){
       console.log(stdout)
       console.log(stderr)
