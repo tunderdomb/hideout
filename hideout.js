@@ -229,7 +229,6 @@ Hideout.prototype.readJSON = function ( src, process, filter ){
 }
 
 Hideout.prototype.writeJSON = function ( dest, obj, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     console.log("Write JSON:", dest)
     fs.writeFile(path.join(cwd, dest), JSON.stringify(obj, null, "  "), function( err ){
@@ -239,7 +238,6 @@ Hideout.prototype.writeJSON = function ( dest, obj, filter ){
 }
 
 Hideout.prototype.make = function ( dirs, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     async.each(dirs, function ( dir, next ){
       console.log("Make dir:", dir)
@@ -249,7 +247,6 @@ Hideout.prototype.make = function ( dirs, filter ){
 }
 
 Hideout.prototype.run = function ( cmd, result, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     console.log("Executing: ", "'"+cmd+"'")
     exec(cmd, function ( err, stdout, stderr ){
@@ -260,7 +257,6 @@ Hideout.prototype.run = function ( cmd, result, filter ){
 }
 
 Hideout.prototype.runBatch = function ( commands, result, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     async.each(commands, function( cmd, next ){
       console.log("Executing: ", "'"+cmd+"'")
@@ -273,7 +269,6 @@ Hideout.prototype.runBatch = function ( commands, result, filter ){
 }
 
 Hideout.prototype.package = function ( json, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     console.log("Write package.json..")
     fs.writeFile(path.join(cwd, "package.json"), JSON.stringify(json, null, "  "), function( err ){
@@ -288,7 +283,6 @@ Hideout.prototype.package = function ( json, filter ){
  * @param [filter]{Function}
  * */
 Hideout.prototype.npmInstall = function ( packages, options, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     var cmd = "npm install"
       + (packages.length ? " " + packages.join(" ") : "")
@@ -306,7 +300,6 @@ Hideout.prototype.npmInstall = function ( packages, options, filter ){
 }
 
 Hideout.prototype.gitInit = function ( options, filter ){
-  var H = this
   return this.queue(filter, function ( done ){
     var cmd = "git init"
       + (options || "")
@@ -319,5 +312,13 @@ Hideout.prototype.gitInit = function ( options, filter ){
       }
       done()
     })
+  })
+}
+
+Hideout.prototype.options = function ( process, filter ){
+  var H = this
+  return this.queue(filter, function ( done ){
+    process(H.options)
+    done()
   })
 }

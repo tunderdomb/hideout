@@ -9,6 +9,9 @@
   "directories": {
     "test": "test"
   },
+  "scripts": {
+    "test": "mocha"
+  },
   "keywords": [
     "scaffolding"
   ],
