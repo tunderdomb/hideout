@@ -7,7 +7,7 @@ module.exports = function ( hideout ){
       options["assertion-library"] = "chai"
       options["dev-style"] = "expect"
     })
-    .ask({
+    .confirm({
       name: "defaults",
       message: "Use defaults (no questions asked)",
       'default': true
