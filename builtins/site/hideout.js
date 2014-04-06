@@ -1,7 +1,7 @@
 module.exports = function( hideout ){
 
   hideout
-    .start(function( options ){
+    .start(__dirname, function( options ){
       console.log(options)
     })
 

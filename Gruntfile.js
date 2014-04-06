@@ -7,7 +7,7 @@ module.exports = function ( grunt ){
           "hideout.js"
         ],
         options: {
-          destination: 'doc',
+          destination: 'docs',
           template: 'node_modules/grunt-jsdoc/node_modules/ink-docstrap/template',
           configure: 'jsdoc.conf.json'
         }

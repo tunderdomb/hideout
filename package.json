@@ -1,7 +1,7 @@
 {
   "name": "hideout",
-  "version": "0.0.2",
-  "description": "Minimal project scaffolding",
+  "version": "0.1.0",
+  "description": "Minimalistic project scaffolding",
   "main": "hideout.js",
   "bin": {
     "hideout": "bin/hideout.js"

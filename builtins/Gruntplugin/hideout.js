@@ -13,7 +13,7 @@ module.exports = function( hideout ){
       message: "Is this a multitask?",
       'default': true
     })
-    .start(function( options ){
+    .start(__dirname, function( options ){
       console.log(options)
     })
 
