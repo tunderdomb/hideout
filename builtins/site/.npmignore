@@ -1,6 +1,5 @@
 .grunt
 .idea/
-Gruntfile.js
 docs
 test
 npm-debug.log
