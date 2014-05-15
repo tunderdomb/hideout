@@ -6,7 +6,7 @@ module.exports = function( hideout ){
     .log("NPM init..")
     // collect basic information
     .run("git remote -v", function( err, stdout, stderr, options ){
-      options.repository = (stdout.match(/https:.+?\.git/)||[""])[0]
+      options.repository = (stdout.match(/https:.+?\.git/)||["No repository"])[0]
     })
     .run("npm config get username", function( err, stdout, stderr, options ){
       options.username = stdout.trim()
@@ -40,69 +40,73 @@ module.exports = function( hideout ){
     .route(function( options, route, done ){
       route
         .config(function( options ){
-          options["name"] = path.basename(process.cwd())
-          options["version"] = "0.0.0"
-          options["description"] = ""
-          options["licence"] = "MIT"
+          options.name = path.basename(process.cwd())
+          options.version = "0.0.0"
+          options.description = "No description"
+          options.licence = "MIT"
         })
-        .ask({
-          name: "name",
-          message: "Name your module",
-          'default': path.basename(process.cwd())
-        }, function( options ){
-          return !options.defaults
-        })
-        .ask({
-          name: "version",
-          message: "Version",
-          'default': "0.0.0"
-        }, function( options ){
-          return !options.defaults
-        })
-        .ask({
-          name: "description",
-          message: "Description",
-          'default': ""
-        }, function( options ){
-          return !options.defaults
-        })
-        .ask({
-          name: "repository",
-          message: "Repository",
-          'default': options.repository
-        }, function( options ){
-          return !options.defaults
-        })
-        .select({
-          name: "licence",
-          message: "Licence (you can learn more about this choice at http://choosealicense.com/licenses)",
-          'default': "MIT",
-          choices: options.licenceChoices
-        }, function( options ){
-          return !options.defaults
-        })
-        // put the actual writing of the package and the copying of the licence file
-        // into a new route because the values for these need to be accessed after they are set
         .route(function( options, route, done ){
           route
-            .log("Writing licence file..")
-            .copy({
-              src: options.licences[options.licence],
-              dest: "LICENCE.md"
+            .ask({
+              name: "name",
+              message: "Name your module",
+              'default': options.name
+            }, function( options ){
+              return !options.defaults
             })
-            .log("Writing package.json..")
-            .package({
-              "name": options.name,
-              "version": options.version,
-              "description": options.description,
-              "repository": {
-                "type": "git",
-                "url": options.repository
-              },
-              "author": options.username+" <"+options.email+">",
-              "license": options.licence,
-              "dependencies": {},
-              "devDependencies": {}
+            .ask({
+              name: "version",
+              message: "Version",
+              'default': options.version
+            }, function( options ){
+              return !options.defaults
+            })
+            .ask({
+              name: "description",
+              message: "Description",
+              'default': options.description
+            }, function( options ){
+              return !options.defaults
+            })
+            .ask({
+              name: "repository",
+              message: "Repository",
+              'default': options.repository
+            }, function( options ){
+              return !options.defaults
+            })
+            .select({
+              name: "licence",
+              message: "Licence (you can learn more about this choice at http://choosealicense.com/licenses)",
+              'default': options.licence,
+              choices: options.licenceChoices
+            }, function( options ){
+              return !options.defaults
+            })
+            // put the actual writing of the package and the copying of the licence file
+            // into a new route because the values for these need to be accessed after they are set
+            .route(function( options, route, done ){
+              route
+                .log("Writing licence file..")
+                .copy({
+                  src: options.licences[options.licence],
+                  dest: "LICENCE.md"
+                })
+                .log("Writing package.json..")
+                .package({
+                  "name": options.name,
+                  "version": options.version,
+                  "description": options.description,
+                  "repository": {
+                    "type": "git",
+                    "url": options.repository
+                  },
+                  "author": options.username+" <"+options.email+">",
+                  "license": options.licence,
+                  "dependencies": {},
+                  "devDependencies": {}
+                })
+                .start(__dirname, done)
             })
             .start(__dirname, done)
         })

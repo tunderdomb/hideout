@@ -46,6 +46,39 @@ hideout.extend = function ( obj, ext ){
   }
 }
 
+hideout.expand = function( src, cwd, done ){
+  var expand = []
+  if ( typeof src == "string" ) {
+    if ( /\*|{|}|\||\[|\]/.test(src) ) {
+      glob(src, {cwd: cwd}, function( err, files ){
+        if( err ) {
+          hideout.error(err)
+          done()
+        }
+        done(files)
+      })
+    }
+    else {
+      expand.push(src)
+      done(expand)
+    }
+  }
+  else if ( Array.isArray(src) ) {
+    async.eachSeries(src, function( pattern, next ){
+      glob(pattern, {cwd: cwd}, function( err, files ){
+        if( err ) {
+          hideout.error(err)
+          done()
+        }
+        expand = expand.concat(files)
+        next()
+      })
+    }, function(  ){
+      done(expand)
+    })
+  }
+}
+
 /**
  * A scaffolding context.
  * @constructor
@@ -359,49 +392,47 @@ Hideout.prototype.copy = function ( options, filter ){
     var dest = options.dest || ""
 
     function doCopy( files ){
-      async.each(files, function ( file, next ){
+      async.eachSeries(files, function ( relativeFilePath, next ){
         // src path for current
-        file = path.join(H.pluginDir, file)
+        var srcPath = path.join(H.pluginDir, relativeFilePath)
         // dest path for current file
-        var target
-          , targetDir
+        var targetPath
         if ( !dest || /\/$/.test(dest) ) {
-          target = path.join(cwd, dest, file)
+          targetPath = path.join(cwd, dest, relativeFilePath)
         }
         else {
-          target = path.join(cwd, dest)
+          targetPath = path.join(cwd, dest)
           // flatten
           if ( options.flatten ) {
-            target = path.join(cwd, dest, path.basename(file))
+            targetPath = path.join(cwd, dest, path.basename(relativeFilePath))
           }
         }
         // rename
         if ( options.rename ) {
-          target = options.rename(target)
+          targetPath = options.rename(targetPath)
         }
-        targetDir = path.dirname(target)
-        mkdirp(path.dirname(targetDir), function (){
+        mkdirp(path.dirname(targetPath), function (){
           // process
           if ( options.process ) {
-            fs.readFile(file, "utf8", function ( err, data ){
+            fs.readFile(srcPath, "utf8", function ( err, data ){
               if ( err ) {
                 hideout.error(err)
                 next()
               }
-              else fs.writeFile(target, options.process(data), "utf8", function ( err ){
+              else fs.writeFile(targetPath, options.process(data), "utf8", function ( err ){
                 if ( err )
                   hideout.error(err)
                 else
-                  hideout.ok("Process:", file, "->", target)
+                  hideout.ok("Process:", relativeFilePath, "->", targetPath)
                 next()
               })
             })
           }
           // copy
           else try {
-            fs.createReadStream(file)
-              .pipe(fs.createWriteStream(target))
-            hideout.ok("Copy:", file, "->", target)
+            fs.createReadStream(srcPath)
+              .pipe(fs.createWriteStream(targetPath))
+            hideout.ok("Copy:", srcPath, "->", targetPath)
           }
           catch ( e ) {
             hideout.error(e)
@@ -413,24 +444,27 @@ Hideout.prototype.copy = function ( options, filter ){
       }, done)
     }
 
+    hideout.expand(options.src, H.pluginDir, doCopy)
     // copy glob patterned files
-    if ( /\*|{|}|\||\[|\]/.test(options.src) ) {
-      glob(options.src, {
-        cwd: H.pluginDir
-      }, function ( err, files ){
-        if( err != undefined ) {
-          hideout.error(err)
-          done()
-        }
-        else doCopy(files)
-      })
-    }
-    else if( typeof options.src == "string" ) {
-      doCopy([options.src])
-    }
-    else if( options.src.length ) {
-      doCopy(options.src)
-    }
+//    if( typeof options.src == "string" ) {
+//      if ( /\*|{|}|\||\[|\]/.test(options.src) ) {
+//        glob(options.src, {
+//          cwd: H.pluginDir
+//        }, function ( err, files ){
+//          if( err != undefined ) {
+//            hideout.error(err)
+//            done()
+//          }
+//          else doCopy(files)
+//        })
+//      }
+//      else {
+//        doCopy([options.src])
+//      }
+//    }
+//    else if( options.src.length ) {
+//      doCopy(options.src)
+//    }
 
   })
 }

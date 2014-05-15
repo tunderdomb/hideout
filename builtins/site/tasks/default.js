@@ -1,83 +1,147 @@
-
-var tinylr = require('tiny-lr')()
-var portscanner = require('portscanner')
-var os = require('os')
-var async = require("async")
-
-var MAX_PORTS = 30 // Maximum available ports to check after the specified port
-
-var IP = (function( ifaces ){
-  for ( var dev in ifaces ) {
-    var alias = 0;
-    ifaces[dev].forEach(function ( details ){
-      if ( details.family == 'IPv4' ) {
-        console.log(dev + (alias ? ':' + alias : ''), details.address)
-        ++alias
-        return details.address
-      }
-    })
-  }
-}( os.networkInterfaces() ))
-
-function reservePorts( n, done ){
-  async.map(new Array(n), function( i, done ){
-    portscanner.findAPortNotInUse(8000+i, 8000 + i + MAX_PORTS, IP, function ( port ){
-      done(port)
-    })
-  }, function( err, ports ){
-    done(err, ports)
-  })
-}
+var boomer = require("boomer")
 
 module.exports = function ( grunt ){
 
-  grunt.config("connect", {
-    serve: {
+  grunt.config("concat", {})
+
+  grunt.config("dustin.options", {
+    resolve: "res/",
+    partials: "**/*.dust",
+    setup: function( adapter, dust ){}
+  })
+  grunt.config("dustin.render", {
+    options: {
+      // this target renders html files
+      render: true,
+      // Dust removes white space by default. Don't do that.
+      preserveWhiteSpace: true,
+      // create a global context from these json files
+      // file names will be global properties
+      data: "res/data/*.json",
+      // execute these js files and let them register helpers
+      helpers: "res/helpers/*.js"
+    },
+    expand: true,
+    cwd: "res/pages/",
+    src: ["**/*.dust"],
+    dest: "src/page/",
+    ext: ".html"
+  })
+  // compile options
+  grunt.config("dustin.compile", {
+    copyClientLibs: {
       options: {
-        port: "",
-        hostname: "*",
-        base: "src/",
-        livereload: "",
-        open: ""
+        client: "src/script/lib/dustin/",
+        resolve: "templates/"
       }
-    }
-  })
-  grunt.config("lr", {
-    html: {
-      src: "src/*.html"
     },
-    css: {
-      src: "src/static/css/*.css"
+    compile: {
+      options: {
+        compile: true,
+        // we don't care about white space in compiled templates
+        preserveWhiteSpace: false
+      },
+      expand: true,
+      cwd: "res/",
+      src: ["**/*.dust"],
+      dest: "src/templates/",
+      ext: ".js"
+    }
+
+  })
+
+  grunt.config("stylist", {
+    options: {
+      classes: true,
+      ids: true,
+      data: false,
+      ignore: "res/style/**/*.less"
     },
-    img: {
-      src: "src/media/image/**/*.{jpg,jpeg,png,gif,svg}"
+    extract: {
+      expand: true,
+      cwd: "res",
+      src: ["**/*.dust"],
+      dest: "res/style/",
+      ext: ".less"
     }
   })
 
-  grunt.registerMultiTask("lr", "", function (  ){
-    var changedFiles = this.filesSrc
-    if ( changedFiles.length ) {
-      tinylr.changed({body: {files: changedFiles}})
+  grunt.config("less", {
+    options: {
+      cleancss: true,
+      strictMath: true
+    },
+    preprocess: {
+      expand: true,
+      flatten: true,
+      cwd: "res/style/",
+      src: ["*.less"],
+      dest: "src/static/css/",
+      ext: ".css"
     }
   })
-  grunt.registerTask("default", "", function(  ){
-    console.log("Grunt~~")
-    reservePorts(2, function( ports ){
-      grunt.config("connect.mail.options.port", ports[0])
-      grunt.config("connect.mail.options.livereload", ports[1])
 
-      grunt.event.once("connect.mail.listening", function (){
-        // and let watch keep it alive
-        grunt.task.run("watch")
-      })
+  grunt.config("autoprefixer", {
+    prefix: {
+      options: {
+        browsers: [
+          "last 10 Chrome versions",
+          "last 3 ie versions",
+          "last 10 ff versions",
+          "last 10 Opera versions",
+          "last 10 Safari versions",
+          "last 3 iOS versions",
+          "Android >= 2"
+        ]
+      },
+      expand: true,
+      cwd: "src/static/css/",
+      src: "*.css",
+      dest: "src/static/css/"
+    }
+  })
 
-      // create lr server
-      tinylr.listen(ports[1], function ( err ){
-        console.log('LR Server Started')
-        // open server
-        grunt.task.run("connect:mail")
-      })
+  boomer(grunt, "default")
+    .connect({
+      hostname: "*",
+      base: "src/"
     })
-  })
+    .lr({
+      html: "src/**/*.html",
+      css: "src/static/css/*.css",
+      js: "src/script/**/*.js",
+      img: "src/media/image/**/*.{jpe?g,png,gif,svg}",
+      template: "src/template/*.js"
+    })
+    .watch({
+      options: {
+        spawn: false,
+        interrupt: true
+      },
+      html: {
+        files: [
+          "res/data/*.json",
+          "res/**/*.dust"
+        ],
+        tasks: ["dustin:render", "newer:stylist", "lr:html"]
+      },
+      img: {
+        files: "src/media/image/**/*.{jpe?g,png,gif,svg}",
+        tasks: ["newer:lr:img"]
+      },
+      css: {
+        files: [
+          "res/style/**/*.less"
+        ],
+        tasks: ["less", "newer:autoprefixer", "newer:lr:css"]
+      },
+      js: {
+        files: [
+          "src/script/**/*.js",
+          "src/template/*.js"
+        ],
+        tasks: ["newer:lr:js"]
+      }
+    })
 
 }
