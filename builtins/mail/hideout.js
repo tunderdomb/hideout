@@ -1,20 +1,25 @@
-module.exports = function( hideout ){
-
+module.exports = function ( hideout ){
+  console.log("hello")
   hideout
-    .sequence("npmInit")
-    .copy({
-      src: "Gruntfile.js"
-    })
-    .make([
-      "mail",
-      "rendered",
-      "template/component",
-      "template/data",
-      "template"
+    .copy([
+      "Gruntfile.js",
+      "npm-shrinkwrap.json",
+      "package.json",
+      "recipients.json",
+      "tasks/*.js",
+      "example/*.*",
+      "template/**/*.*",
+      "README.md"
     ])
-    .npmInstall(["grunt", "grunt-dustin", "grunt-nodemailer", "grunt-premailer", "boomer"])
-    .start(__dirname, function( options ){
-      console.log(options)
+    .make([
+      "rendered",
+      "rendered/img",
+      "template/mails"
+    ])
+    .log("npm install ...")
+    .npmInstall()
+    .start(__dirname, function (  ){
+      console.log("Done!")
     })
 
 }

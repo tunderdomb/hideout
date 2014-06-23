@@ -100,14 +100,27 @@ Hideout.prototype = {}
  * Start must be called to initiate execution.
  * Without calling it nothing will happen.
  *
- * @param {String} dir plugin directory used to resolve scaffolding files
+ * @param {String|Function} [dir] plugin directory used to resolve scaffolding files.
+ *                       only optional when called on a sub route, or if `chdir` is called before.
  * @param {Function} [done] callback function called after everything is finished
  * @returns undefined
  * */
 Hideout.prototype.start = function ( dir, done ){
-  this.pluginDir = dir
+  if( typeof dir == "function" ) {
+    done = dir
+    dir = this.pluginDir
+  }
+  this.pluginDir = dir || this.pluginDir
   this.done = done
   this.next()
+}
+
+/**
+ * Change the internal plugin directory.
+ * */
+Hideout.prototype.chdir = function( dir ){
+  this.pluginDir = dir
+  return this
 }
 
 /**
@@ -125,12 +138,13 @@ Hideout.prototype.exit = function (){
  * It is also good to group relevant tasks, and maybe execute them conditionally.
  * Routes are also useful if you need to use the values you previously prompted from the user.
  * @param {Function} router - the router function receiving the following arguments:
- *                            {Object}options, {Hideout}route, {Function}done
+ *                            {Object}options, {Hideout}route, {Function}next
+ *                            call `next()` when you want to exit this route
  * @returns {Hideout} this
  * */
 Hideout.prototype.route = function ( router ){
-  return this.queue(null, function ( done ){
-    router(this.options, new Hideout(this.options, this.argv, this.pluginDir), done)
+  return this.queue(null, function ( next ){
+    router(this.options, new Hideout(this.options, this.argv, this.pluginDir), next)
   })
 }
 
@@ -159,7 +173,7 @@ Hideout.prototype.next = function (){
   if ( this.q.length )
     this.q.shift()(this)
   else
-    this.exit(this.options)
+    this.exit(null, this.options)
 }
 
 /**
@@ -374,7 +388,7 @@ Hideout.prototype.selectMultiple = function ( questions, filter ){
 
 /**
  * Copy files from the plugin directory to the cwd.
- * @param options{Object}
+ * @param options{Object|String|Array}
  * @param {String|String[]} options.src - files to copy/process
  *                               can be a glob pattern like `"src/*.js"`
  *                               a single file path like `"src/that.js"`
@@ -389,7 +403,9 @@ Hideout.prototype.selectMultiple = function ( questions, filter ){
 Hideout.prototype.copy = function ( options, filter ){
   return this.queue(filter, function ( done ){
     var H = this
+    var src = options.src || options
     var dest = options.dest || ""
+    console.log(src)
 
     function doCopy( files ){
       async.eachSeries(files, function ( relativeFilePath, next ){
@@ -444,7 +460,7 @@ Hideout.prototype.copy = function ( options, filter ){
       }, done)
     }
 
-    hideout.expand(options.src, H.pluginDir, doCopy)
+    hideout.expand(src, H.pluginDir, doCopy)
     // copy glob patterned files
 //    if( typeof options.src == "string" ) {
 //      if ( /\*|{|}|\||\[|\]/.test(options.src) ) {
@@ -668,13 +684,14 @@ Hideout.prototype.npmInstall = function ( packages, options, filter ){
     exec(cmd, function ( err, stdout, stderr ){
       if ( err !== null ) {
         hideout.error("Error executing command: '" + cmd + "' " + err)
+        H.exit(err)
       }
       else {
         if ( H.argv.verbose ) {
           console.log(stdout)
           console.log(stderr)
         }
-        hideout.ok("Installing npm modules:", packages.join(" "))
+        hideout.ok("Installing npm modules", packages ? packages.join("\n\t") : "")
       }
       done()
     })
