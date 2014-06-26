@@ -51,7 +51,7 @@ module.exports = function ( grunt ){
       }
     })
     .started(function( options ){
-      grunt.config("premailer.inline.options.baseUrl", options.host)
+      grunt.config("premailer.inline.options.baseUrl", "http://"+options.host+":"+options.port)
     })
 
 }
