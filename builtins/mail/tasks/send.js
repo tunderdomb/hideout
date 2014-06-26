@@ -56,7 +56,7 @@ module.exports = function ( grunt ){
     }
     grunt.config("nodemailer.send.options.recipients", recipients)
     grunt.config("nodemailer.send.src", "rendered/*.html")
-    grunt.config("nodemailer.send.options.transport.auth", {
+    grunt.config("nodemailer.send.options.transport.options.auth", {
       "user": process.env.USER,
       "pass": process.env.PASSWORD
     })
