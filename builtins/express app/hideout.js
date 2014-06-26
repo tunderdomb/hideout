@@ -4,28 +4,26 @@ module.exports = function( hideout ){
     .sequence("npmInit")
     .sequence("bowerInit")
     .make([
-      "app",
-      "app/api",
-      "app/routes",
-      "modules",
-      "public",
-      "public/download",
-      "public/static",
+      ".gen/sprite/",
+      "app/api/",
+      "app/routes/",
+      "app/services/",
+      "client/",
+      "public/downloads",
       "public/static/css",
+      "public/static/favicon",
       "public/static/font",
       "public/static/icon",
-      "public/static/pattern",
-      "public/static/sprite",
+      "public/static/img",
+      "public/static/font",
+      "public/static/js",
+      "public/uploads",
+      "style/",
     ])
-    .copy({
-      src: [
-        "Gruntfile.js",
-        "tasks/*.js",
-        "res/**/*.*",
-        ".gitignore",
-        ".npmignore"
-      ]
-    })
+    .copy([
+      "!hideout.js",
+      "./**/*.js"
+    ])
     .route(function( options, route, done ){
       route
         .copy({
@@ -38,18 +36,7 @@ module.exports = function( hideout ){
         .start(done)
     })
     .log("Installing npm modules...")
-    .npmInstall([
-      "grunt",
-      "grunt-stylist",
-      "grunt-contrib-concat",
-      "grunt-contrib-less",
-      "grunt-contrib-clean",
-      "load-grunt-tasks",
-      "grunt-autoprefixer",
-      "grunt-newer",
-      "grunt-dustin",
-      "boomer"
-    ], "--save-dev")
+    .npmInstall()
     .log("Installing bower modules...")
     .run("bower install hud --save")
     .start(__dirname, function( options ){
