@@ -4,25 +4,44 @@ module.exports = function( hideout ){
     .sequence("npmInit")
     .sequence("bowerInit")
     .make([
-      ".gen/sprite/",
+      ".config/",
+      ".data/",
+      ".des/",
+      ".gen/",
+      ".helpers/",
+      ".helpers/",
+      ".tasks/",
+      "app/",
       "app/api/",
       "app/routes/",
-      "app/services/",
+      "app/util/",
       "client/",
-      "public/downloads",
-      "public/static/css",
-      "public/static/favicon",
-      "public/static/font",
-      "public/static/icon",
-      "public/static/img",
-      "public/static/font",
-      "public/static/js",
-      "public/uploads",
+      "logs/",
+      "public/",
+      "public/downloads/",
+      "public/static/",
+      "public/static/css/",
+      "public/static/favicon/",
+      "public/static/font/",
+      "public/static/icon/",
+      "public/static/img/",
+      "public/static/js/",
+      "public/static/template/",
+      "public/uploads/",
       "style/",
+      "style/font/",
+      "style/import/",
+      "style/reset/",
+      "view/general/",
+      "view/head/",
+      "view/layout/",
+      "view/main/"
     ])
     .copy([
-      "!hideout.js",
-      "./**/*.js"
+      "**/*.*",
+      ".bowerrc",
+      ".gitignore",
+      "!hideout.js"
     ])
     .route(function( options, route, done ){
       route
@@ -37,8 +56,6 @@ module.exports = function( hideout ){
     })
     .log("Installing npm modules...")
     .npmInstall()
-    .log("Installing bower modules...")
-    .run("bower install hud --save")
     .start(__dirname, function( options ){
       console.log("All done! Happy coding! (^_^)/")
     })

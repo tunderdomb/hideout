@@ -1,0 +1,15 @@
+<html {+htmlAttr}{/htmlAttr}>
+<head>
+  <meta charset="UTF-8">
+  <title>{+title}{/title}</title>
+  {>"head/favicon"/}
+  {>"head/opengraph"/}
+  {>"head/robots"/}
+  {>"head/seo"/}
+  {>"head/viewport"/}
+  {+head}{/head}
+</head>
+<body {+bodyAttr}{/bodyAttr}>
+  {+body}{/body}
+</body>
+</html>

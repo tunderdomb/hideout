@@ -70,7 +70,20 @@ hideout.expand = function( src, cwd, done ){
           hideout.error(err)
           done()
         }
-        expand = expand.concat(files)
+        if ( pattern[0] == "!" ) {
+          // exclude patterns
+          files.forEach(function( src ){
+            var i = expand.indexOf(src)
+            if( !~i ) return
+            expand.splice(i, 1)
+          })
+        }
+        else {
+          // filter duplicates
+          expand = expand.concat(files.filter(function( src ){
+            return !~expand.indexOf(src)
+          }))
+        }
         next()
       })
     }, function(  ){
@@ -405,7 +418,6 @@ Hideout.prototype.copy = function ( options, filter ){
     var H = this
     var src = options.src || options
     var dest = options.dest || ""
-    console.log(src)
 
     function doCopy( files ){
       async.eachSeries(files, function ( relativeFilePath, next ){
@@ -461,27 +473,6 @@ Hideout.prototype.copy = function ( options, filter ){
     }
 
     hideout.expand(src, H.pluginDir, doCopy)
-    // copy glob patterned files
-//    if( typeof options.src == "string" ) {
-//      if ( /\*|{|}|\||\[|\]/.test(options.src) ) {
-//        glob(options.src, {
-//          cwd: H.pluginDir
-//        }, function ( err, files ){
-//          if( err != undefined ) {
-//            hideout.error(err)
-//            done()
-//          }
-//          else doCopy(files)
-//        })
-//      }
-//      else {
-//        doCopy([options.src])
-//      }
-//    }
-//    else if( options.src.length ) {
-//      doCopy(options.src)
-//    }
-
   })
 }
 

@@ -1,0 +1,5 @@
+{> "layout/page"/}
+{<title}{/title}
+{<head}{/head}
+{<bodyAttr}{/bodyAttr}
+{<body}{/body}

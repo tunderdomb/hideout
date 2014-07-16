@@ -1,0 +1,54 @@
+{
+  "options": {
+    "separator": ";\n"
+  },
+  "js": {
+    "files": {
+      "client/libs/hive/dist/hive.core.js": [
+        "client/libs/hive/src/core/hive.js",
+        "client/libs/hive/src/utils/scrollable.js",
+        "client/libs/hive/src/utils/viewport.js",
+        "client/libs/hive/src/utils/*.js",
+        "client/libs/hive/src/core/Radio.js",
+        "client/libs/hive/src/core/Role.js",
+        "client/libs/hive/src/core/RoleDefinition.js",
+        "client/libs/hive/src/core/Binding.js",
+        "client/libs/hive/src/core/DataModel.js",
+        "client/libs/hive/src/core/Reactor.js",
+        "client/libs/hive/src/core/App.js",
+        "client/libs/hive/src/core/event.js",
+        "client/libs/hive/src/core/inject.js",
+        "client/libs/hive/src/core/request.js"
+      ],
+      "client/libs/hive/dist/hive.dom.js": [
+        "client/libs/hive/src/dom/*.js"
+      ],
+      "client/libs/hive/dist/hive.event.js": [
+        "client/libs/hive/src/events/*.js"
+      ],
+      "client/libs/hive/dist/hive.plugins.js": [
+        "client/libs/hive/src/plugin/*.js"
+      ],
+      "public/static/js/hive.js": [
+        "client/libs/hive/src/core/hive.js",
+        "client/libs/hive/src/utils/scrollable.js",
+        "client/libs/hive/src/utils/viewport.js",
+        "client/libs/hive/src/utils/*.js",
+        "client/libs/hive/src/core/Radio.js",
+        "client/libs/hive/src/core/Role.js",
+        "client/libs/hive/src/core/RoleDefinition.js",
+        "client/libs/hive/src/core/Binding.js",
+        "client/libs/hive/src/core/DataModel.js",
+        "client/libs/hive/src/core/Reactor.js",
+        "client/libs/hive/src/core/App.js",
+        "client/libs/hive/src/core/event.js",
+        "client/libs/hive/src/core/inject.js",
+        "client/libs/hive/src/core/request.js",
+        "client/libs/hive/src/plugin/*.js"
+      ],
+      "public/static/js/index.js": [
+        "client/index.js"
+      ]
+    }
+  }
+}
