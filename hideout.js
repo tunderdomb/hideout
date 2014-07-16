@@ -44,6 +44,7 @@ hideout.extend = function ( obj, ext ){
   for ( var prop in ext ) {
     obj[prop] = ext[prop]
   }
+  return obj
 }
 
 hideout.expand = function( src, cwd, done ){
@@ -90,6 +91,16 @@ hideout.expand = function( src, cwd, done ){
       done(expand)
     })
   }
+}
+
+hideout.readJSON = function( src, process ){
+  fs.readFile(src, "utf8", function( err, content ){
+    if( err ) process(err)
+    else process(null, JSON.parse(content))
+  })
+}
+hideout.writeJSON = function( dest, obj, process ){
+  fs.writeFile(dest, JSON.stringify(obj, null, "  "), process)
 }
 
 /**
@@ -198,8 +209,9 @@ Hideout.prototype.next = function (){
  * */
 Hideout.prototype.queue = function ( filter, task ){
   this.q.push(function ( H ){
-    if ( !filter || filter && filter(H.options) ) task.call(H, function (){
-      H.next()
+    if ( !filter || filter && filter(H.options) ) task.call(H, function ( err ){
+      if ( err ) H.error(err)
+      else H.next()
     })
     else H.next()
   })
@@ -310,6 +322,20 @@ Hideout.prototype.prompt = function ( questions, filter ){
       done()
     })
   })
+}
+
+/**
+ * Resolve a path to the plugin directory
+ * */
+Hideout.prototype.src = function( src ){
+  return path.join(this.pluginDir, src)
+}
+
+/**
+ * Resolve a path to the current working dir
+ * */
+Hideout.prototype.dest = function( src ){
+  return path.join(cwd, src)
 }
 
 /**
@@ -504,8 +530,13 @@ Hideout.prototype.read = function ( src, process, filter ){
 Hideout.prototype.readTarget = function ( src, process, filter ){
   return this.queue(filter, function ( done ){
     var H = this
-    fs.readFile(path.join(cwd, src), "utf8", function ( err, data ){
-      process(err, data, H.options, done)
+    fs.readFile(H.dest(src), "utf8", function ( err, data ){
+      try{
+        process(err, data, H.options, done)
+      }
+      catch( e ){
+        done(e)
+      }
     })
   })
 }
@@ -518,13 +549,9 @@ Hideout.prototype.readTarget = function ( src, process, filter ){
 Hideout.prototype.readJSON = function ( src, process, filter ){
   return this.queue(filter, function ( done ){
     var H = this
-    fs.readFile(path.join(H.pluginDir, src), "utf8", function ( err, data ){
-      try {
-        process(err, JSON.parse(data), H.options, done)
-      }
-      catch ( e ) {
-        process(e, null, H.options, done)
-      }
+    hideout.readJSON(H.src(src), function ( err, data ){
+      if( err ) done(err)
+      else process(JSON.parse(data), H.options, done)
     })
   })
 }
@@ -538,12 +565,12 @@ Hideout.prototype.readJSON = function ( src, process, filter ){
  * */
 Hideout.prototype.writeJSON = function ( dest, obj, filter ){
   return this.queue(filter, function ( done ){
-    fs.writeFile(path.join(cwd, dest), JSON.stringify(obj, null, "  "), function ( err ){
-      if ( err )
-        hideout.error("JSON:", dest)
-      else
+    hideout.writeJSON(this.dest(dest), obj, function ( err ){
+      if( err ) done(err)
+      else {
         hideout.ok("JSON:", dest)
-      done()
+        done()
+      }
     })
   })
 }
@@ -558,9 +585,11 @@ Hideout.prototype.writeJSON = function ( dest, obj, filter ){
 Hideout.prototype.write = function ( dest, content, filter ){
   return this.queue(filter, function ( done ){
     fs.writeFile(dest, content, "utf8", function ( err ){
-      if ( err ) hideout.error(err)
-      else hideout.ok("Write:", dest)
-      done()
+      if ( err ) done(err)
+      else {
+        hideout.ok("Write:", dest)
+        done()
+      }
     })
   })
 }
@@ -575,11 +604,11 @@ Hideout.prototype.make = function ( dirs, filter ){
   return this.queue(filter, function ( done ){
     async.each(dirs, function ( dir, next ){
       mkdirp(dir, function ( err ){
-        if ( err )
-          hideout.error(err)
-        else
+        if ( err ) done(err)
+        else {
           hideout.ok("Make dir:", dir)
-        next()
+          next()
+        }
       })
     }, done)
   })
@@ -600,62 +629,121 @@ Hideout.prototype.glob = function ( pattern, process, filter ){
     glob(pattern, {
       cwd: H.pluginDir
     }, function ( err, files ){
-      process(err, files, H.options, done)
+      if ( err ) {
+        done(err)
+        return
+      }
+      try{
+        process(err, files, H.options, done)
+      }
+      catch( e ){
+        done(e)
+      }
     })
   })
 }
 
 /**
- * Runs a command in the cwd.
- * @param {String} cmd - the command to execute.
+ * Runs a command in the cwd. Can be a list of commands.
+ * @param {String|String[]} cmd - command(s) to execute.
  * @param {Function} [result] - callback called for the command. Arguments: err, stdout, stderr
  * @param {Function} [filter] - Conditionally execute this task based on this function return value.
  * @returns {Hideout} this
  * */
 Hideout.prototype.run = function ( cmd, result, filter ){
   var H = this
-  return this.queue(filter, function ( done ){
-//    console.log("Executing: ", "'"+cmd+"'")
+  function run( cmd, done ){
     exec(cmd, function ( err, stdout, stderr ){
-      result && result(err, stdout, stderr, H.options)
-      done()
+      if ( err ) {
+        done(err)
+        return
+      }
+      try{
+        result && result(err, stdout, stderr, H.options)
+        done()
+      }
+      catch( e ){
+        done(e)
+      }
     })
-  })
-}
-
-/**
- * Executes a list of commands.
- * @param {String[]} commands - the commands tp execute.
- * @param {Function} [result] - callback called for each command. Arguments: err, stdout, stderr
- * @param {Function} [filter] - Conditionally execute this task based on this function return value.
- * @returns {Hideout} this
- * */
-Hideout.prototype.runBatch = function ( commands, result, filter ){
+  }
   return this.queue(filter, function ( done ){
-    async.each(commands, function ( cmd, next ){
-//      console.log("Executing: ", "'"+cmd+"'")
-      exec(cmd, function ( err, stdout, stderr ){
-        result && result(err, stdout, stderr)
-        next()
-      })
-    }, done)
+    if ( Array.isArray(cmd) ) {
+      async.eachSeries(cmd, run)
+    }
+    else {
+      run(cmd, done)
+    }
   })
 }
 
 /**
- * Write a `package.json` to the root of the cwd.
- * @param {Object} json - The json content of the file.
+ * Write a `package.json` to the root of the cwd. Or update the existing.
+ * @param {Object|Function} json - The json content of the file.
  * @param {Function} [filter] - Conditionally execute this task based on this function return value.
  * @returns {Hideout} this
  * */
 Hideout.prototype.package = function ( json, filter ){
   return this.queue(filter, function ( done ){
-    fs.writeFile(path.join(cwd, "package.json"), JSON.stringify(json, null, "  "), function ( err ){
-      if ( err )
-        hideout.error(err)
-      else
-        hideout.ok("package.json")
-      done()
+    var file = this.dest("packages.json")
+    hideout.readJSON(file, function( err, packages ){
+      if ( typeof json == "function" ) {
+        packages = json(packages||{}) || packages
+      }
+      else {
+        packages = packages
+          ? hideout.extend(packages, json)
+          : json
+      }
+      hideout.writeJSON(file, packages, function( err ){
+        if ( err ) {
+          done(err)
+          return
+        }
+        done()
+      })
+    })
+  })
+}
+
+/**
+ * Extend dependencies in packages.json
+ * */
+Hideout.prototype.dependencies = function( deps, filter ){
+  return this.queue(filter, function( done ){
+    var file = this.dest("packages.json")
+    hideout.readJSON(file, function( err, packages ){
+      if( !packages ) packages = {}
+      packages.dependencies = packages.dependencies || {}
+      hideout.extend(packages.dependencies, deps)
+      hideout.writeJSON(file, packages, function( err ){
+        if ( err ) {
+          done(err)
+          return
+        }
+        done()
+      })
+    })
+  })
+}
+
+/**
+ * Extend devDependencies in packages.json
+ * */
+Hideout.prototype.devDependencies = function( deps, filter ){
+  return this.queue(filter, function( done ){
+    var file = this.dest("packages.json")
+    hideout.readJSON(file, function( err, packages ){
+      if( !packages ) packages = {}
+      packages.devDependencies = packages.devDependencies || {}
+      hideout.extend(packages.devDependencies, deps)
+      hideout.writeJSON(file, packages, function( err ){
+        if ( err ) {
+          done(err)
+          return
+        }
+        done()
+      })
     })
   })
 }
