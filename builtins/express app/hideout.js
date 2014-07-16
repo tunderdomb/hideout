@@ -75,7 +75,7 @@ module.exports = function( hideout ){
       }
     })
     .log("Installing npm modules...")
-//    .npmInstall()
+    .npmInstall()
     .route(function( options, route, done ){
       route
         .copy({
