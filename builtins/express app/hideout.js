@@ -1,8 +1,12 @@
 module.exports = function( hideout ){
 
   hideout
+    .config(function( options ){
+      options.bowerrcDir = "client/libs"
+    })
     .sequence("npmInit")
     .sequence("bowerInit")
+    .sequence("bowerrc")
     .make([
       ".config/",
       ".data/",
@@ -39,7 +43,7 @@ module.exports = function( hideout ){
     ])
     .copy([
       "**/*.*",
-      ".bowerrc",
+//      ".bowerrc",
       ".gitignore",
       "!hideout.js"
     ])

@@ -66,13 +66,6 @@ module.exports = function( hideout ){
         }, function( options ){
           return !options.defaults
         })
-        .ask({
-          name: "directory",
-          message: ".bowerrc directory",
-          'default': "src/script"
-        }, function( options ){
-          return !options.defaults
-        })
         // put the actual writing of the package and the copying of the licence file
         // into a new route because the values for these need to be accessed after they are set
         .route(function( options, route, done ){
@@ -99,9 +92,6 @@ module.exports = function( hideout ){
               ],
               "dependencies": {},
               "devDependencies": {}
-            })
-            .writeJSON(".bowerrc", {
-              directory: options.directory
             })
             .start(__dirname, done)
         })
