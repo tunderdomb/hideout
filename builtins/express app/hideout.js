@@ -1,9 +1,6 @@
 module.exports = function( hideout ){
 
   hideout
-    .config(function( options ){
-      options.bowerrcDir = "client/libs"
-    })
     .make([
       ".config/",
       ".data/",
@@ -40,11 +37,17 @@ module.exports = function( hideout ){
     ])
     .copy([
       "**/*.*",
+      ".config/*.*",
+      ".data/*.*",
+      ".tasks/*.*",
       ".gitignore",
       "!hideout.js"
     ])
     .sequence("npmInit")
     .sequence("bowerInit")
+    .config(function( options ){
+      options.bowerrcDir = "client/libs"
+    })
     .sequence("bowerrc")
     .dependencies({
       "superagent": "0.18.0",

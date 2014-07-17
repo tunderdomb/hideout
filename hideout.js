@@ -210,7 +210,7 @@ Hideout.prototype.next = function (){
 Hideout.prototype.queue = function ( filter, task ){
   this.q.push(function ( H ){
     if ( !filter || filter && filter(H.options) ) task.call(H, function ( err ){
-      if ( err ) H.error(err)
+      if ( err ) hideout.error(err)
       else H.next()
     })
     else H.next()
@@ -685,7 +685,7 @@ Hideout.prototype.run = function ( cmd, result, filter ){
  * */
 Hideout.prototype.package = function ( json, filter ){
   return this.queue(filter, function ( done ){
-    var file = this.dest("packages.json")
+    var file = this.dest("package.json")
     hideout.readJSON(file, function( err, packages ){
       if ( typeof json == "function" ) {
         packages = json(packages||{}) || packages
@@ -711,7 +711,7 @@ Hideout.prototype.package = function ( json, filter ){
  * */
 Hideout.prototype.dependencies = function( deps, filter ){
   return this.queue(filter, function( done ){
-    var file = this.dest("packages.json")
+    var file = this.dest("package.json")
     hideout.readJSON(file, function( err, packages ){
       if( !packages ) packages = {}
       packages.dependencies = packages.dependencies || {}
@@ -732,7 +732,7 @@ Hideout.prototype.dependencies = function( deps, filter ){
  * */
 Hideout.prototype.devDependencies = function( deps, filter ){
   return this.queue(filter, function( done ){
-    var file = this.dest("packages.json")
+    var file = this.dest("package.json")
     hideout.readJSON(file, function( err, packages ){
       if( !packages ) packages = {}
       packages.devDependencies = packages.devDependencies || {}

@@ -5,17 +5,13 @@ module.exports = function( hideout ){
   hideout
     .log("NPM init..")
     // collect basic information
+    // note that this will fail if the cwd is not a git repo
     .run("git remote -v", function( err, stdout, stderr, options ){
       options.repository = (stdout.match(/https:.+?\.git/)||["No repository"])[0]
     })
     .run("npm config get username", function( err, stdout, stderr, options ){
       options.username = stdout.trim()
     })
-//    .route(function( options, route, done ){
-//      route
-//        .log("Hello "+options.username+"!")
-//        .start(__dirname, done)
-//    })
     .run("npm config get email", function( err, stdout, stderr, options ){
       options.email = stdout.trim()
     })
