@@ -1,0 +1,37 @@
+
+.font-face( @family, @root, @font, @weight: normal, @style: normal ){
+  font-family: @family;
+  src: url('@{root}@{font}.eot');
+  src: url('@{root}@{font}.eot?#iefix') format('embedded-opentype'),
+  url('@{root}@{font}.woff') format('woff'),
+  url('@{root}@{font}.ttf') format('truetype'),
+  url('@{root}@{font}.svg#@{root}') format('svg');
+  font-weight: @weight;
+  font-style: @style;
+}
+.img-center( @width: 1000px ){
+  position: absolute;
+  margin-left: (-@width / 2);
+  left: 50%;
+  width: @width;
+}
+.pos( @x, @y ){
+  left: @x;
+  top: @y;
+}
+.posLT( @x, @y ){
+  left: @x;
+  top: @y;
+}
+.posRT( @x, @y ){
+  right: @x;
+  top: @y;
+}
+.posLB( @x, @y ){
+  left: @x;
+  bottom: @y;
+}
+.posRB( @x, @y ){
+  right: @x;
+  bottom: @y;
+}

@@ -1,0 +1,39 @@
+
+// ========== MEDIA QUERIES ==========
+// http://en.wikipedia.org/wiki/List_of_displays_by_pixel_density
+// http://mobile.smashingmagazine.com/2013/03/21/responsive-web-design-with-physical-units/
+
+
+// smart phones
+@phone-width: 320px;
+@phone-height: 480px;
+@phone: ~"only screen and (max-width: @{phone-height})";
+@phone-landscape: ~"only screen and (max-width: @{phone-height})";
+@phone-portrait: ~"only screen and (max-width: @{phone-width})";
+
+// mobile
+@mobile: ~"only screen and (max-width: @{desktop-width})";
+
+// desktop
+@desktop-width: 1024px;
+@desktop-height: 700px;
+@desktop: ~"only screen and (min-width: @{desktop-width}) and (min-height: @{desktop-height})";
+
+// table
+@tablet-width: 481px;
+@tablet-height: 1024px;
+@tablet: ~"only screen and (min-width: @{tablet-width})";
+@tablet-landscape: ~"only screen and (max-width: @{tablet-height})";
+@tablet-portrait: ~"only screen and (max-width: @{tablet-width})";
+
+// Apple
+@ipad: ~"only screen and (min-device-width: 768px) and (max-device-width: 1024px)";
+@ipad-landscape: ~"@{ipad} and (orientation: landscape)";
+@ipad-portrait: ~"@{ipad} and (orientation: portrait)";
+@iphone4: ~"only screen and (-webkit-min-device-pixel-ratio: 1.5), only screen and (min-device-pixel-ratio: 1.5)";
+@retina: ~"@{ipad} and (-webkit-min-device-pixel-ratio: 2)";
+@retina-landscape: ~"@{ipad} and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 2)";
+@retina-portrait: ~"@{ipad} and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 2)";
+@ipad-1-2: ~"@{ipad} and (-webkit-min-device-pixel-ratio: 1)";
+@ipad-1-2-landscape: ~"@{ipad} and (orientation: landscape) and (-webkit-min-device-pixel-ratio: 1)";
+@ipad-1-2-portrait: ~"@{ipad} and (orientation: portrait) and (-webkit-min-device-pixel-ratio: 1)";

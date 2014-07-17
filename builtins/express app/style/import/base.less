@@ -1,0 +1,307 @@
+@import "global";
+
+// positions
+.absolute{
+  position: absolute;
+}
+
+// displays
+.inline{
+  display: inline-block;
+}
+.block{
+  display: block;
+}
+.table{
+  display: table;
+  width: 100%;
+}
+.cell{
+  display: table-cell;
+}
+.none{
+  display: none;
+}
+
+// aligns
+.middle{
+  vertical-align: middle;
+}
+.top{
+  vertical-align: top;
+}
+.bottom{
+  vertical-align: bottom;
+}
+.left{
+  text-align: left;
+}
+.right{
+  text-align: right;
+}
+.center{
+  text-align: center;
+}
+
+// combos
+// inline blocks
+.middle-line{
+  &:extend(.middle);
+  &:extend(.inline);
+}
+.bottom-line{
+  &:extend(.bottom);
+  &:extend(.inline);
+}
+.top-line{
+  &:extend(.top);
+  &:extend(.inline);
+}
+.left-line{
+  &:extend(.left);
+  &:extend(.inline);
+}
+.right-line{
+  &:extend(.right);
+  &:extend(.inline);
+}
+.center-line{
+  &:extend(.center);
+  &:extend(.inline);
+}
+// cells
+.middle-cell{
+  &:extend(.middle);
+  &:extend(.cell);
+}
+.top-cell{
+  &:extend(.mobile-block);
+  &:extend(.top);
+  &:extend(.cell);
+}
+.bottom-cell{
+  &:extend(.bottom);
+  &:extend(.cell);
+}
+.left-cell{
+  &:extend(.left);
+  &:extend(.cell);
+}
+.right-cell{
+  &:extend(.right);
+  &:extend(.cell);
+}
+.center-cell{
+  &:extend(.center);
+  &:extend(.cell);
+}
+
+// blocks
+.center-block{
+  &:extend(.block);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+// widths
+.one-wide{
+  width: 10%;
+}
+.two-wide{
+  width: 20%;
+}
+.three-wide{
+  width: 30%;
+}
+.four-wide{
+  width: 40%;
+}
+.half-wide{
+  width: 50%;
+}
+.six-wide{
+  width: 60%;
+}
+.seven-wide{
+  width: 70%;
+}
+.eight-wide{
+  width: 80%;
+}
+.nine-wide{
+  width: 90%;
+}
+.third-wide{
+  width: (100% / 3);
+}
+.two-third-wide{
+  width: (100% / 3 * 2);
+}
+.quarter-wide{
+  width: 25%;
+}
+.three-quarter-wide{
+  width: 75%;
+}
+.wide{
+  width: 100%;
+}
+
+// heights
+.one-tall{
+  height: 10%;
+}
+.two-tall{
+  height: 20%;
+}
+.three-tall{
+  height: 30%;
+}
+.four-tall{
+  height: 40%;
+}
+.half-tall{
+  height: 50%;
+}
+.six-tall{
+  height: 60%;
+}
+.seven-tall{
+  height: 70%;
+}
+.eight-tall{
+  height: 80%;
+}
+.nine-tall{
+  height: 90%;
+}
+.third-tall{
+  height: (100% / 3);
+}
+.two-third-tall{
+  height: (100% / 3 * 2);
+}
+.quarter-tall{
+  height: 25%;
+}
+.three-quarter-tall{
+  height: 75%;
+}
+.tall{
+  height: 100%;
+}
+
+// padding
+.pad-one{
+  padding-left: 10%;
+}
+.pad-two-wide{
+  padding-left: 20%;
+}
+.pad-three-wide{
+  padding-left: 30%;
+}
+.pad-four-wide{
+  padding-left: 40%;
+}
+.pad-half-wide{
+  padding-left: 50%;
+}
+.pad-six-wide{
+  padding-left: 60%;
+}
+.pad-seven-wide{
+  padding-left: 70%;
+}
+.pad-eight-wide{
+  padding-left: 80%;
+}
+.pad-nine-wide{
+  padding-left: 90%;
+}
+.pad-third-wide{
+  padding-left: (100% / 3);
+}
+.pad-two-third-wide{
+  padding-left: (100% / 3 * 2);
+}
+.pad-quarter-wide{
+  padding-left: 25%;
+}
+.pad-three-quarter-wide{
+  padding-left: 75%;
+}
+
+// animation
+.ease-short{
+  transition: all 0.3s ease;
+}
+.ease{
+  transition: all 0.5s ease;
+}
+.ease-long{
+  transition: all 1s ease;
+}
+.ease-in-short{
+  transition: all 0.3s ease-in;
+}
+.ease-in{
+  transition: all 0.5s ease-in;
+}
+.ease-in-long{
+  transition: all 1s ease-in;
+}
+.ease-out-short{
+  transition: all 0.3s ease-out;
+}
+.ease-out{
+  transition: all 0.5s ease-out;
+}
+.ease-out-long{
+  transition: all 1s ease-out;
+}
+
+// misc
+
+.fix{
+  display: block;
+  &:after{
+    display: table;
+    content: "";
+    clear: both;
+  }
+}
+
+.pointer{
+  cursor: pointer;
+}
+
+.grayscale{
+  filter: url("data:image/svg+xml;utf8,&lt;svg xmlns=\'http://www.w3.org/2000/svg\'&gt;&lt;filter id=\'grayscale\'&gt;&lt;feColorMatrix type=\'matrix\' values=\'0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0.3333 0.3333 0.3333 0 0 0 0 0 1 0\'/&gt;&lt;/filter&gt;&lt;/svg&gt;#grayscale"); /* Firefox 10+, Firefox on Android */
+  filter: gray; /* IE6-9 */
+  -webkit-filter: grayscale(100%); /* Chrome 19+, Safari 6+, Safari 6+ iOS */
+}
+.nofilter{
+  filter: none;
+}
+
+// media
+
+.mobile-block{
+  @media @mobile {
+    display: block;
+    width: 100%;
+  }
+}
+.desktop-block{
+  display: none;
+  @media @desktop {
+    display: block;
+  }
+}
+.desktop-inline{
+  display: none;
+  @media @desktop {
+    display: inline-block;
+  }
+}
