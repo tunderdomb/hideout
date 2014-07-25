@@ -5,6 +5,8 @@ var exec = require("child_process").exec
 var fs = require("fs")
 var async = require("async")
 var mkdirp = require("mkdirp")
+var rimraf = require("rimraf")
+var ncp = require("ncp").ncp
 var glob = require("glob")
 var inquirer = require("inquirer")
 var chalk = require("chalk")
@@ -12,19 +14,8 @@ var chalk = require("chalk")
 var cwd = process.cwd()
 
 /** @namespace */
-var hideout = module.exports = {}
-
-hideout.plug = function ( plugin, argv ){
-  glob(path.join(__dirname, "builtins/*"), {}, function ( err, plugins ){
-    plugins.some(function ( src ){
-      if ( path.basename(src) == plugin ) {
-        plugin = path.join(src, "hideout.js")
-        return true
-      }
-      return false
-    })
-    require(plugin)(new Hideout(null, argv))
-  })
+var hideout = module.exports = function create( options, dir ){
+  return new Hideout(options, dir)
 }
 
 hideout.log = function (){
@@ -47,59 +38,55 @@ hideout.extend = function ( obj, ext ){
   return obj
 }
 
-hideout.expand = function( src, cwd, done ){
+hideout.expand = function ( src, cwd, done ){
   var expand = []
   if ( typeof src == "string" ) {
-    if ( /\*|{|}|\||\[|\]/.test(src) ) {
-      glob(src, {cwd: cwd}, function( err, files ){
-        if( err ) {
-          hideout.error(err)
-          done()
-        }
-        done(files)
-      })
-    }
-    else {
-      expand.push(src)
-      done(expand)
-    }
+    glob(src, {cwd: cwd}, function ( err, files ){
+      if ( err ) {
+        hideout.error(err)
+        done()
+      }
+      done(files)
+    })
   }
   else if ( Array.isArray(src) ) {
-    async.eachSeries(src, function( pattern, next ){
-      glob(pattern, {cwd: cwd}, function( err, files ){
-        if( err ) {
+    async.eachSeries(src, function ( pattern, next ){
+      glob(pattern, {cwd: cwd}, function ( err, files ){
+        if ( err ) {
           hideout.error(err)
           done()
         }
         if ( pattern[0] == "!" ) {
           // exclude patterns
-          files.forEach(function( src ){
+          files.forEach(function ( src ){
             var i = expand.indexOf(src)
-            if( !~i ) return
+            if ( !~i ) return
             expand.splice(i, 1)
           })
         }
         else {
           // filter duplicates
-          expand = expand.concat(files.filter(function( src ){
+          expand = expand.concat(files.filter(function ( src ){
             return !~expand.indexOf(src)
           }))
         }
         next()
       })
-    }, function(  ){
+    }, function (){
       done(expand)
     })
   }
+  else done(expand)
 }
 
-hideout.readJSON = function( src, process ){
-  fs.readFile(src, "utf8", function( err, content ){
-    if( err ) process(err)
+hideout.readJSON = function ( src, process ){
+  fs.readFile(src, "utf8", function ( err, content ){
+    if ( err ) process(err)
     else process(null, JSON.parse(content))
   })
 }
-hideout.writeJSON = function( dest, obj, process ){
+
+hideout.writeJSON = function ( dest, obj, process ){
   fs.writeFile(dest, JSON.stringify(obj, null, "  "), process)
 }
 
@@ -107,13 +94,11 @@ hideout.writeJSON = function( dest, obj, process ){
  * A scaffolding context.
  * @constructor
  * @param {Object} [options] initial values
- * @param {Object} [argv] command line arguments
  * @param {String} [dir] plugin directory
  */
-function Hideout( options, argv, dir ){
+function Hideout( options, dir ){
   this.q = []
   this.options = options || {}
-  this.argv = argv || {}
   this.pluginDir = dir || ""
 }
 
@@ -130,7 +115,7 @@ Hideout.prototype = {}
  * @returns undefined
  * */
 Hideout.prototype.start = function ( dir, done ){
-  if( typeof dir == "function" ) {
+  if ( typeof dir == "function" ) {
     done = dir
     dir = this.pluginDir
   }
@@ -142,7 +127,7 @@ Hideout.prototype.start = function ( dir, done ){
 /**
  * Change the internal plugin directory.
  * */
-Hideout.prototype.chdir = function( dir ){
+Hideout.prototype.chdir = function ( dir ){
   this.pluginDir = dir
   return this
 }
@@ -168,7 +153,7 @@ Hideout.prototype.exit = function (){
  * */
 Hideout.prototype.route = function ( router ){
   return this.queue(null, function ( next ){
-    router(this.options, new Hideout(this.options, this.argv, this.pluginDir), next)
+    router(this.options, new Hideout(this.options, this.pluginDir), next)
   })
 }
 
@@ -327,14 +312,14 @@ Hideout.prototype.prompt = function ( questions, filter ){
 /**
  * Resolve a path to the plugin directory
  * */
-Hideout.prototype.src = function( src ){
+Hideout.prototype.src = function ( src ){
   return path.join(this.pluginDir, src)
 }
 
 /**
  * Resolve a path to the current working dir
  * */
-Hideout.prototype.dest = function( src ){
+Hideout.prototype.dest = function ( src ){
   return path.join(cwd, src)
 }
 
@@ -427,7 +412,7 @@ Hideout.prototype.selectMultiple = function ( questions, filter ){
 
 /**
  * Copy files from the plugin directory to the cwd.
- * @param options{Object|String|Array}
+ * @param options{Object|String|String[]}
  * @param {String|String[]} options.src - files to copy/process
  *                               can be a glob pattern like `"src/*.js"`
  *                               a single file path like `"src/that.js"`
@@ -446,7 +431,7 @@ Hideout.prototype.copy = function ( options, filter ){
     var dest = options.dest || ""
 
     function doCopy( files ){
-      async.eachSeries(files, function ( relativeFilePath, next ){
+      async.each(files, function ( relativeFilePath, next ){
         // src path for current
         var srcPath = path.join(H.pluginDir, relativeFilePath)
         // dest path for current file
@@ -470,6 +455,70 @@ Hideout.prototype.copy = function ( options, filter ){
           if ( options.process ) {
             fs.readFile(srcPath, "utf8", function ( err, data ){
               if ( err ) {
+                next(err)
+              }
+              else fs.writeFile(targetPath, options.process(data), "utf8", function ( err ){
+                if ( err ) return next(err)
+                hideout.ok("Process:", relativeFilePath, "->", targetPath)
+                next()
+              })
+            })
+          }
+          // copy
+          else {
+            ncp(srcPath, targetPath, function( err ){
+              if( !err ) hideout.ok("Copied:", srcPath, "->", targetPath)
+              next(err)
+            })
+          }
+        })
+      }, done)
+    }
+
+    hideout.expand(src, H.pluginDir, doCopy)
+  })
+}
+
+/**
+ * Move files from the plugin directory to the cwd.
+ * @param options{Object|String|String[]}
+ * @param {String|String[]} options.src - files to move/process
+ *                               can be a glob pattern like `"src/*.js"`
+ *                               a single file path like `"src/that.js"`
+ *                               or an array of file paths.
+ * @param {String} [options.dest] - destination path. Default: ""
+ * @param {String} [options.flatten] - remove directory parts from files
+ * @param {String} [options.process] - process file along the way
+ * @param {Function} [filter] - Conditionally execute this task based on this function return value.
+ * @returns {Hideout} this
+ * */
+Hideout.prototype.move = function ( options, filter ){
+  return this.queue(filter, function ( done ){
+    var H = this
+    var src = options.src || options
+    var dest = options.dest || ""
+
+    function doCopy( files ){
+      async.each(files, function ( relativeFilePath, next ){
+        // src path for current
+        var srcPath = path.join(H.pluginDir, relativeFilePath)
+        // dest path for current file
+        var targetPath
+        if ( !dest || /\/$/.test(dest) ) {
+          targetPath = path.join(cwd, dest, relativeFilePath)
+        }
+        else {
+          targetPath = path.join(cwd, dest)
+          // flatten
+          if ( options.flatten ) {
+            targetPath = path.join(cwd, dest, path.basename(relativeFilePath))
+          }
+        }
+        mkdirp(path.dirname(targetPath), function (){
+          // process
+          if ( options.process ) {
+            fs.readFile(srcPath, "utf8", function ( err, data ){
+              if ( err ) {
                 hideout.error(err)
                 next()
               }
@@ -482,23 +531,59 @@ Hideout.prototype.copy = function ( options, filter ){
               })
             })
           }
-          // copy
-          else try {
-            fs.createReadStream(srcPath)
-              .pipe(fs.createWriteStream(targetPath))
-            hideout.ok("Copy:", srcPath, "->", targetPath)
-          }
-          catch ( e ) {
-            hideout.error(e)
-          }
-          finally {
-            next()
+          // move
+          else {
+            fs.rename(srcPath, targetPath, function ( err ){
+              if ( !err ) hideout.ok("Moved:", srcPath, "->", targetPath)
+              next(err)
+            })
           }
         })
       }, done)
     }
 
     hideout.expand(src, H.pluginDir, doCopy)
+  })
+}
+
+/**
+ * Clear stuff from cwd
+ * */
+Hideout.prototype.clearTarget = function ( paths, filter ){
+  return this.queue(filter, function ( done ){
+    hideout.expand(paths, cwd, function ( files ){
+      async.each(files, function ( file, next ){
+        file = path.join(cwd, file)
+        rimraf(file, function ( err ){
+          if ( !err ) hideout.ok("Removed:", file)
+          next(err)
+        })
+      }, done)
+    })
+  })
+}
+
+/**
+ * Clear stuff from plugin dir
+ * */
+Hideout.prototype.clearPlugin = function ( paths, filter ){
+  return this.queue(filter, function ( done ){
+    var H = this
+    if ( !paths ) {
+      rimraf(H.pluginDir, function ( err ){
+        done(err)
+        if ( !err ) hideout.ok("Removed:", H.pluginDir)
+      })
+    }
+    else hideout.expand(paths, H.pluginDir, function ( files ){
+      async.each(files, function ( file, next ){
+        file = path.join(H.pluginDir, file)
+        rimraf(file, function ( err ){
+          next(err)
+          if ( !err ) hideout.ok("Removed:", file)
+        })
+      }, done)
+    })
   })
 }
 
@@ -531,10 +616,10 @@ Hideout.prototype.readTarget = function ( src, process, filter ){
   return this.queue(filter, function ( done ){
     var H = this
     fs.readFile(H.dest(src), "utf8", function ( err, data ){
-      try{
+      try {
         process(err, data, H.options, done)
       }
-      catch( e ){
+      catch ( e ) {
         done(e)
       }
     })
@@ -550,7 +635,7 @@ Hideout.prototype.readJSON = function ( src, process, filter ){
   return this.queue(filter, function ( done ){
     var H = this
     hideout.readJSON(H.src(src), function ( err, data ){
-      if( err ) done(err)
+      if ( err ) done(err)
       else process(JSON.parse(data), H.options, done)
     })
   })
@@ -566,7 +651,7 @@ Hideout.prototype.readJSON = function ( src, process, filter ){
 Hideout.prototype.writeJSON = function ( dest, obj, filter ){
   return this.queue(filter, function ( done ){
     hideout.writeJSON(this.dest(dest), obj, function ( err ){
-      if( err ) done(err)
+      if ( err ) done(err)
       else {
         hideout.ok("JSON:", dest)
         done()
@@ -633,10 +718,10 @@ Hideout.prototype.glob = function ( pattern, process, filter ){
         done(err)
         return
       }
-      try{
+      try {
         process(err, files, H.options, done)
       }
-      catch( e ){
+      catch ( e ) {
         done(e)
       }
     })
@@ -652,21 +737,13 @@ Hideout.prototype.glob = function ( pattern, process, filter ){
  * */
 Hideout.prototype.run = function ( cmd, result, filter ){
   var H = this
+
   function run( cmd, done ){
     exec(cmd, function ( err, stdout, stderr ){
-      if ( err ) {
-        done(err)
-        return
-      }
-      try{
-        result && result(err, stdout, stderr, H.options)
-        done()
-      }
-      catch( e ){
-        done(e)
-      }
+      result.call(H, err, stdout, stderr, H.options, done)
     })
   }
+
   return this.queue(filter, function ( done ){
     if ( Array.isArray(cmd) ) {
       async.eachSeries(cmd, run)
@@ -686,16 +763,16 @@ Hideout.prototype.run = function ( cmd, result, filter ){
 Hideout.prototype.package = function ( json, filter ){
   return this.queue(filter, function ( done ){
     var file = this.dest("package.json")
-    hideout.readJSON(file, function( err, packages ){
+    hideout.readJSON(file, function ( err, packages ){
       if ( typeof json == "function" ) {
-        packages = json(packages||{}) || packages
+        packages = json(packages || {}) || packages
       }
       else {
         packages = packages
           ? hideout.extend(packages, json)
           : json
       }
-      hideout.writeJSON(file, packages, function( err ){
+      hideout.writeJSON(file, packages, function ( err ){
         if ( err ) {
           done(err)
           return
@@ -709,14 +786,14 @@ Hideout.prototype.package = function ( json, filter ){
 /**
  * Extend dependencies in packages.json
  * */
-Hideout.prototype.dependencies = function( deps, filter ){
-  return this.queue(filter, function( done ){
+Hideout.prototype.dependencies = function ( deps, filter ){
+  return this.queue(filter, function ( done ){
     var file = this.dest("package.json")
-    hideout.readJSON(file, function( err, packages ){
-      if( !packages ) packages = {}
+    hideout.readJSON(file, function ( err, packages ){
+      if ( !packages ) packages = {}
       packages.dependencies = packages.dependencies || {}
       hideout.extend(packages.dependencies, deps)
-      hideout.writeJSON(file, packages, function( err ){
+      hideout.writeJSON(file, packages, function ( err ){
         if ( err ) {
           done(err)
           return
@@ -730,14 +807,14 @@ Hideout.prototype.dependencies = function( deps, filter ){
 /**
  * Extend devDependencies in packages.json
  * */
-Hideout.prototype.devDependencies = function( deps, filter ){
-  return this.queue(filter, function( done ){
+Hideout.prototype.devDependencies = function ( deps, filter ){
+  return this.queue(filter, function ( done ){
     var file = this.dest("package.json")
-    hideout.readJSON(file, function( err, packages ){
-      if( !packages ) packages = {}
+    hideout.readJSON(file, function ( err, packages ){
+      if ( !packages ) packages = {}
       packages.devDependencies = packages.devDependencies || {}
       hideout.extend(packages.devDependencies, deps)
-      hideout.writeJSON(file, packages, function( err ){
+      hideout.writeJSON(file, packages, function ( err ){
         if ( err ) {
           done(err)
           return
@@ -766,7 +843,7 @@ Hideout.prototype.npmInstall = function ( packages, options, filter ){
         H.exit(err)
       }
       else {
-        if ( H.argv.verbose ) {
+        if ( H.options.verbose ) {
           console.log(stdout)
           console.log(stderr)
         }
@@ -809,7 +886,7 @@ Hideout.prototype.gitInit = function ( options, filter ){
         hideout.error("Error executing command: '" + cmd + "' " + err)
       }
       else {
-        if ( H.argv.verbose ) {
+        if ( H.options.verbose ) {
           console.log(stdout)
           console.log(stderr)
         }
@@ -856,7 +933,7 @@ Hideout.prototype.git = function ( options, filter ){
           hideout.error("Error executing command: '" + command + "' " + err)
         }
         else {
-          if ( H.argv.verbose ) {
+          if ( H.options.verbose ) {
             console.log(stdout)
             console.log(stderr)
           }
@@ -877,9 +954,8 @@ Hideout.prototype.git = function ( options, filter ){
 Hideout.prototype.gitIgnore = function ( content, filter ){
   return this.queue(filter, function ( done ){
     fs.writeFile(path.join(cwd, ".gitignore"), content, "utf8", function ( err ){
-      if ( err ) hideout.error(err)
-      else hideout.ok(".gitignore")
-      done()
+      if ( !err ) hideout.ok(".gitignore")
+      done(err)
     })
   })
 }
@@ -893,9 +969,8 @@ Hideout.prototype.gitIgnore = function ( content, filter ){
 Hideout.prototype.readme = function ( content, filter ){
   return this.queue(filter, function ( done ){
     fs.writeFile(path.join(cwd, "README.md"), content, "utf8", function ( err ){
-      if ( err ) hideout.error(err)
-      else hideout.ok("README.md")
-      done()
+      if ( !err ) hideout.ok("README.md")
+      done(err)
     })
   })
 }

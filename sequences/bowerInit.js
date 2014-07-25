@@ -5,11 +5,13 @@ module.exports = function( hideout ){
   hideout
     .log("Bower init..")
     // collect basic information
-    .run("npm config get username", function( err, stdout, stderr, options ){
+    .run("npm config get username", function( err, stdout, stderr, options, next ){
       options.username = stdout.trim()
+      next()
     })
-    .run("npm config get email", function( err, stdout, stderr, options ){
+    .run("npm config get email", function( err, stdout, stderr, options, next ){
       options.email = stdout.trim()
+      next()
     })
     .route(function( options, route, done ){
       route
