@@ -60,8 +60,10 @@ hideout.expand = function ( src, cwd, done ){
           // exclude patterns
           files.forEach(function ( src ){
             var i = expand.indexOf(src)
-            if ( !~i ) return
-            expand.splice(i, 1)
+            while ( ~i ) {
+              expand.splice(i, 1)
+              i = expand.indexOf(src)
+            }
           })
         }
         else {
@@ -468,73 +470,6 @@ Hideout.prototype.copy = function ( options, filter ){
           else {
             ncp(srcPath, targetPath, function( err ){
               if( !err ) hideout.ok("Copied:", srcPath, "->", targetPath)
-              next(err)
-            })
-          }
-        })
-      }, done)
-    }
-
-    hideout.expand(src, H.pluginDir, doCopy)
-  })
-}
-
-/**
- * Move files from the plugin directory to the cwd.
- * @param options{Object|String|String[]}
- * @param {String|String[]} options.src - files to move/process
- *                               can be a glob pattern like `"src/*.js"`
- *                               a single file path like `"src/that.js"`
- *                               or an array of file paths.
- * @param {String} [options.dest] - destination path. Default: ""
- * @param {String} [options.flatten] - remove directory parts from files
- * @param {String} [options.process] - process file along the way
- * @param {Function} [filter] - Conditionally execute this task based on this function return value.
- * @returns {Hideout} this
- * */
-Hideout.prototype.move = function ( options, filter ){
-  return this.queue(filter, function ( done ){
-    var H = this
-    var src = options.src || options
-    var dest = options.dest || ""
-
-    function doCopy( files ){
-      async.each(files, function ( relativeFilePath, next ){
-        // src path for current
-        var srcPath = path.join(H.pluginDir, relativeFilePath)
-        // dest path for current file
-        var targetPath
-        if ( !dest || /\/$/.test(dest) ) {
-          targetPath = path.join(cwd, dest, relativeFilePath)
-        }
-        else {
-          targetPath = path.join(cwd, dest)
-          // flatten
-          if ( options.flatten ) {
-            targetPath = path.join(cwd, dest, path.basename(relativeFilePath))
-          }
-        }
-        mkdirp(path.dirname(targetPath), function (){
-          // process
-          if ( options.process ) {
-            fs.readFile(srcPath, "utf8", function ( err, data ){
-              if ( err ) {
-                hideout.error(err)
-                next()
-              }
-              else fs.writeFile(targetPath, options.process(data), "utf8", function ( err ){
-                if ( err )
-                  hideout.error(err)
-                else
-                  hideout.ok("Process:", relativeFilePath, "->", targetPath)
-                next()
-              })
-            })
-          }
-          // move
-          else {
-            fs.rename(srcPath, targetPath, function ( err ){
-              if ( !err ) hideout.ok("Moved:", srcPath, "->", targetPath)
               next(err)
             })
           }
