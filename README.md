@@ -1,74 +1,71 @@
 hideout.js
 =======
 
-Another take on project scaffolding.
-The twist is: self extracting modules.
+Another take on project scaffolding. Now with less decoration and more focus on actual scaffolding.
 
-The idea started with the frustration that came from using existing scaffolding tools.
-They require you to write a lot of boilerplate code just to achive a single task.
+The problem with current scaffolding tools is that
+they require you to write a lot of boilerplate code just to achieve a single task.
 Which is generally copy stuff, and maybe substitute some template variables.
 
 This sounds so easy that it required an equally easy method to do so.
-To top it with extra functionality, hideout project templates are self extracting.
+Plus you don't have to structure your project template in any special way,
+nor will you get lost in configuring simple tasks.
 
-Instead of lengthy explanation, here's a simple project:
+Hideout is straightforward and easy to use/read.
+Plenty of convenient features are provided for common stuff.
 
-    src/
-      index.js
-    .gitignore
-    .npmignore
-    hideout.js
-
-Well this could be the structure of a lot of anything.
-But the key is in the `hideout.js` file.
-Let's say someone published this moduel on npm like `really-general-js-project`
-
-When you want to use this project template, you say
-
-    npm install really-general-js-project
-
-And pretty much that's it. The project extracts itself into your current working dir.
-I can hear you say "But npm installs into `node_modules`" and you're right. It is.
-But the hideout templates run post install, and the magic is simple:
-change the working dir to `../../` and run the hideout.js file.
-
-Hideouts are written with a template dir-project dir relation in mind.
-So when scaffolding, every read operation is relative to the template source,
-and all writing is targeted on the project dir.
-
-Installing hideout globally ensures that templates don't have to include them all the time
+## Install
 
     npm install -g hideout
 
-This installs the scaffolding api which templates can use.
+## Example
 
-The last bit of the magic happens in the `package.js`.
-It goes like this:
+A simple project structure:
 
-    "scripts": {
-      "install": "cd ../../ && hideout really-general-js-project"
-    }
+    index.js
+    .gitignore
+    package.json
+    README.md
+    hideout.js
 
-Executing this in your project root, hideout constructs a path to the template `hideout.js` and executes it.
+Let's say we published this module on npm like `hideout-bare-minimum`
 
-(plugin == "really-general-js-project").
+**Note:** it's essential to prefix the template with `hideout-` because that's what the resolver looks for.
+
+When you want to use this template, you say
+
+    mkdir new-project
+    cd new-project
+    npm install hideout-bare-minimum
+    hideout bare-minimum
+
+or globally once, so it can be used any time you need it
+
+    npm install hideout-bare-minimum -g
+    hideout bare-minimum
+
+In any case hideout will find it, and will look for it in the above order.
+First locally, then globally.
+
+Hideouts are written with a template-project relation in mind.
+So when scaffolding, every read operation is relative to the template source,
+and all writing is targeted on the project dir.
+
+All the scaffolding logic is in the `hideout.js` file.
+Here's what happens in it:
 
 ```js
-path.join(cwd, "node_modules", plugin, "hideout.js")
-```
-And finally, here's what happens in the `hideout.js`:
-
-```js
-require("hideout")({defaults: true})
-  .copy([
-    "*",
-    "!node_modules",
-    "!package.json",
-    "!hideout.js"
-  ])
-  .start(__dirname, function ( options ){
-    console.log("All done!")
-  })
+module.exports = function( hideout ){
+  hideout
+    .copy([
+      "*",
+      ".gitignore",
+      "!hideout.js"
+    ])
+    .start(__dirname, function ( options ){
+      console.log("All done!")
+    })
+}
 ```
 
 To see what is hideout capable of, see the docs!

@@ -2,6 +2,7 @@
 
 var path = require("path")
 var exec = require("child_process").exec
+var spawn = require('child_process').spawn
 var fs = require("fs")
 var async = require("async")
 var mkdirp = require("mkdirp")
@@ -468,8 +469,8 @@ Hideout.prototype.copy = function ( options, filter ){
           }
           // copy
           else {
-            ncp(srcPath, targetPath, function( err ){
-              if( !err ) hideout.ok("Copied:", srcPath, "->", targetPath)
+            ncp(srcPath, targetPath, function ( err ){
+              if ( !err ) hideout.ok("Copied:", srcPath, "->", targetPath)
               next(err)
             })
           }
@@ -664,7 +665,7 @@ Hideout.prototype.glob = function ( pattern, process, filter ){
 }
 
 /**
- * Runs a command in the cwd. Can be a list of commands.
+ * Runs one or more commands in the cwd.
  * @param {String|String[]} cmd - command(s) to execute.
  * @param {Function} [result] - callback called for the command. Arguments: err, stdout, stderr
  * @param {Function} [filter] - Conditionally execute this task based on this function return value.
@@ -682,6 +683,32 @@ Hideout.prototype.run = function ( cmd, result, filter ){
   return this.queue(filter, function ( done ){
     if ( Array.isArray(cmd) ) {
       async.eachSeries(cmd, run)
+    }
+    else {
+      run(cmd, done)
+    }
+  })
+}
+
+/**
+ * Runs one ore more commands in parallel in the cwd.
+ * @param {String|String[]} cmd - command(s) to execute.
+ * @param {Function} [result] - callback called for the command. Arguments: err, stdout, stderr
+ * @param {Function} [filter] - Conditionally execute this task based on this function return value.
+ * @returns {Hideout} this
+ * */
+Hideout.prototype.runParallel = function ( cmd, result, filter ){
+  var H = this
+
+  function run( cmd, done ){
+    exec(cmd, function ( err, stdout, stderr ){
+      result.call(H, err, stdout, stderr, H.options, done)
+    })
+  }
+
+  return this.queue(filter, function ( done ){
+    if ( Array.isArray(cmd) ) {
+      async.parallel(cmd, run)
     }
     else {
       run(cmd, done)
@@ -769,21 +796,18 @@ Hideout.prototype.devDependencies = function ( deps, filter ){
 Hideout.prototype.npmInstall = function ( packages, options, filter ){
   return this.queue(filter, function ( done ){
     var H = this
-    var cmd = "npm install"
-      + (packages && packages.length ? " " + packages.join(" ") : "")
-      + (options ? " " + options : "")
-    exec(cmd, function ( err, stdout, stderr ){
-      if ( err !== null ) {
-        hideout.error("Error executing command: '" + cmd + "' " + err)
-        H.exit(err)
-      }
-      else {
-        if ( H.options.verbose ) {
-          console.log(stdout)
-          console.log(stderr)
-        }
-        hideout.ok("Installing npm modules", packages ? packages.join("\n\t") : "")
-      }
+    packages = packages||[]
+    options = options||[]
+    var cmd = process.platform === "win32" ? "npm.cmd" : "npm"
+      , args = ["install"].concat(packages).concat(options)
+
+    var npm = spawn(cmd, args)
+    if ( H.options.verbose ){
+      npm.stdout.pipe(process.stdout)
+      npm.stderr.pipe(process.stderr)
+    }
+    npm.on('exit', function ( code ){
+      hideout.ok("Installing npm modules", packages ? packages.join("\n\t") : "")
       done()
     })
   })
@@ -850,17 +874,17 @@ Hideout.prototype.git = function ( options, filter ){
     if ( options.init ) {
       commands.push("git init")
     }
-    if ( options.setUrl ) {
+    else if ( options.setUrl ) {
       commands.push("git set-url " + options.setUrl)
     }
-    if ( options.add ) {
+    else if ( options.add ) {
       commands.push("git add " + options.add)
     }
-    if ( options.commit ) {
+    else if ( options.commit ) {
       commands.push("git commit " + options.commit)
     }
-    if ( options.push ) {
-      commands.push("git push " + options.commit)
+    else if ( options.push ) {
+      commands.push("git push " + options.push)
     }
     async.each(commands, function ( command, next ){
       exec(command, function ( err, stdout, stderr ){
