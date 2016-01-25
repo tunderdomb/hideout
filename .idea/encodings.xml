@@ -1,5 +1,31 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false" />
+  <component name="Encoding" useUTFGuessing="true" native2AsciiForPropertiesFiles="false">
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/app/config/config.yml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/layout/landing/layout.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/pages/features/article/article-frame.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/pages/features/article/article-reader.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/pages/learn/assignment-questionnaire.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/snippet/article/article.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/snippet/article/article.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/snippet/header/site-header.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/snippet/header/site-header.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/style/pages/feature/article/article-frame.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/style/pages/feature/article/article-reader.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/tasks/style.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/translation/messages.hu.yml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/ui/elements/assignment/questionnaire/AnswerSheet.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/ui/elements/assignment/questionnaire/answer-sheet.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/ui/elements/assignment/questionnaire/answer-sheet.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/ui/elements/assignment/questionnaire/questionnaire.styl" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/client/ui/elements/assignment/questionnaire/questionnaire.twig" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/node_modules/matchbox-model/Model.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/node_modules/matchbox-model/schema/Property.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/node_modules/matchbox-ui/view/View.js" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/src/ME/DashboardBundle/Controller/LearnController.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/src/ME/DashboardBundle/RenderingContext/Elements/Assignment/Questionnaire/Questionnaire.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/src/ME/DashboardBundle/Resources/config/services.yml" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/src/ME/DashboardBundle/Service/AssignmentService.php" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/../../lingowebapp/src/ME/StudentBundle/Controller/ArticleController.php" charset="UTF-8" />
+  </component>
 </project>
-
