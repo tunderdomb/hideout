@@ -1,5 +1,8 @@
 var hideout = module.exports = {}
 
+hideout.tasks = new (require("orchestrator"))
+hideout.color = require("chalk")
+
 hideout.cli = require("./src/plugins/cli")
 hideout.fs = require("./src/plugins/fs")
 hideout.git = require("./src/plugins/git")
