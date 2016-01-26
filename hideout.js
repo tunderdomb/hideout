@@ -2,6 +2,11 @@ var hideout = module.exports = {}
 
 hideout.tasks = new (require("orchestrator"))
 hideout.color = require("chalk")
+hideout.arguments = require("minimist")(process.argv.slice(2))
+
+hideout.plugin = require("./src/plugin")
+hideout.transform = require("./src/transform")
+hideout.use = use
 
 hideout.cli = require("./src/plugins/cli")
 hideout.fs = require("./src/plugins/fs")
@@ -14,3 +19,25 @@ hideout.process = require("./src/plugins/process")
 hideout.transforms = {}
 hideout.transforms.json = require("./src/transforms/json")
 hideout.transforms.path = require("./src/transforms/path")
+
+hideout.util = {}
+hideout.util.path = require("./src/util/path")
+hideout.util.src = require("./src/util/src")
+hideout.util.resolutionCallback = require("./src/util/resolutionCallback")
+
+function use(src) {
+  try {
+    switch (typeof src) {
+      case "string":
+        require(src)(hideout)
+        break
+      case "function":
+        src(hideout)
+        break
+    }
+  }
+  catch (e) {
+    console.log("Missing/invalid module %s", src)
+    throw e
+  }
+}
