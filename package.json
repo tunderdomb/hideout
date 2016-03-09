@@ -1,32 +1,29 @@
 {
   "name": "hideout",
-  "version": "0.5.0",
-  "description": "Minimalistic project scaffolding",
+  "version": "0.6.0",
+  "description": "Promise based general purpose tooling library",
   "main": "hideout.js",
   "bin": {
     "hideout": "bin/hideout.js"
   },
-  "directories": {
-    "doc": "docs",
-    "test": "test"
-  },
-  "scripts": {
-    "test": "mocha"
-  },
   "keywords": [
-    "scaffolding"
+    "scaffolding",
+    "tasks"
   ],
   "author": "Nagy Zoltan <tunderdomb@gmail.com> (tunderdomb)",
   "license": "MIT",
   "dependencies": {
-    "glob": "~3.2.9",
-    "async": "~0.2.10",
-    "mkdirp": "~0.3.5",
-    "inquirer": "~0.4.1",
-    "minimist": "0.0.8",
-    "chalk": "~0.4.0",
-    "rimraf": "~2.2.8",
-    "ncp": "~0.6.0"
+    "async": "^1.5.2",
+    "chalk": "^1.1.1",
+    "es6-promise": "^3.0.2",
+    "glob": "^6.0.4",
+    "inquirer": "^0.11.2",
+    "minimatch": "^3.0.0",
+    "minimist": "^1.2.0",
+    "mkdirp": "^0.5.1",
+    "ncp": "^2.0.0",
+    "orchestrator": "^0.3.7",
+    "rimraf": "^2.2.8"
   },
   "repository": {
     "type": "git",

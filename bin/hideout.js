@@ -1,49 +1,31 @@
 #!/usr/bin/env node
 
 var path = require("path")
-var cwd = process.cwd()
-var async = require("async")
-var argv = require('minimist')(process.argv.slice(2))
 var hideout = require("../hideout")
 
-var plugin = argv._[0]
-// project hideout
-var localHideout = path.join(cwd, "hideout.js")
-var installedHideouts = [
-  // local hideouts
-  path.join(cwd, "node_modules/hideout-"+plugin+"/hideout.js"),
-  // global hideouts
-  path.join(__dirname, "../../hideout-"+plugin+"/hideout.js")
-]
+var ENTRY_SCRIPT = "hideout.js"
 
-function runHideout( name ){
-  try{
-    var hideoutModule = require(name)
-    if( typeof hideoutModule == "function" ) {
-      hideoutModule(hideout(argv))
-    }
-    return true
+var cwd = process.cwd()
+var hideoutFile = path.join(cwd, ENTRY_SCRIPT)
+
+try {
+  var task = hideout.arguments._[0]
+  if (task) {
+    hideout.arguments._.shift()
   }
-  catch( e ){
-    if ( e.code == "MODULE_NOT_FOUND" ) {
-      console.error("This is not a hideout! (%s)", name)
+
+  require(hideoutFile)
+
+  if (task) {
+    if (hideout.tasks.hasTask(task)) {
+      hideout.tasks.start(task)
     }
     else {
-      console.log("This hideout is broken", e)
+      console.log("No such task")
     }
-    return false
   }
 }
-
-if ( plugin ) {
-  // search for the plugin
-  async.any(installedHideouts, function( installedHideout, next ){
-    next(runHideout(installedHideout))
-  }, function( any ){
-    if( !any ) console.log("Nothing happened!")
-  })
-}
-else {
-  // run the project hideout
-  runHideout(localHideout)
+catch (e) {
+  console.error("Missing/invalid %s in %s", ENTRY_SCRIPT, cwd)
+  throw e
 }

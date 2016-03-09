@@ -1,6 +1,0 @@
-{
-  "sprite.png":  {
-    "src": "sprite/*.png",
-    "destCSS": "sprite.less"
-  }
-}

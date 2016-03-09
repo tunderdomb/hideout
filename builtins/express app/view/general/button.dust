@@ -1,5 +1,0 @@
-<label class="label{?cls} {cls}{/cls}">
-  {+input}
-    <button{?type} type="{type}"{/type}{?role} role="{role}"{/role} class="btn{?cls} {cls}{/cls}">{title}</button>
-  {/input}
-</label>

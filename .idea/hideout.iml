@@ -5,8 +5,9 @@
     <orderEntry type="inheritedJdk" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="library" name="Node.js Dependencies for hideout" level="project" />
-    <orderEntry type="library" name="Node.js v0.10.19 Core Modules" level="application" />
     <orderEntry type="library" name="Node.js v0.10.24 Core Modules" level="application" />
+    <orderEntry type="library" name="es6-collections-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="es6-promise-DefinitelyTyped" level="application" />
+    <orderEntry type="library" name="async-DefinitelyTyped" level="application" />
   </component>
 </module>
-
