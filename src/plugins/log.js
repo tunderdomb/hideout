@@ -1,19 +1,53 @@
 var plugin = require("../plugin")
+var logger = require("../util/logger")
 
 module.exports = plugin({
-  log: function(msg) {
+  log: function() {
+    var args = arguments
     return function(/*resolve, reject*/) {
-      console.log(msg)
+      console.apply("log", args)
     }
   },
-  warn: function(msg) {
+  tag: function() {
+    var args = arguments
     return function(/*resolve, reject*/) {
-      console.warn(msg)
+      console.apply("tag", args)
     }
   },
-  error: function(msg) {
+  ok: function() {
+    var args = arguments
     return function(/*resolve, reject*/) {
-      console.error(msg)
+      console.apply("ok", args)
+    }
+  },
+  error: function() {
+    var args = arguments
+    return function(/*resolve, reject*/) {
+      console.apply("error", args)
+    }
+  },
+  warn: function() {
+    var args = arguments
+    return function(/*resolve, reject*/) {
+      console.apply("warn", args)
+    }
+  },
+  info: function() {
+    var args = arguments
+    return function(/*resolve, reject*/) {
+      console.apply("info", args)
+    }
+  },
+  label: function() {
+    var args = arguments
+    return function(/*resolve, reject*/) {
+      console.apply("label", args)
+    }
+  },
+  stack: function() {
+    var args = arguments
+    return function(/*resolve, reject*/) {
+      console.apply("stack", args)
     }
   }
 })

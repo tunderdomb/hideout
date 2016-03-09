@@ -20,7 +20,6 @@ function filterDuplicates(sources) {
   })
 }
 
-
 module.exports = function(paths, options, exclude, cb) {
   if (options == "string") {
     options = {cwd: options}

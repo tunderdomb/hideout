@@ -16,7 +16,7 @@ module.exports = transform({
         return newName(input)
       }
       if (typeof newName == "string") {
-        return path.join(path.basename(input), newName)
+        return path.join(path.dirname(input), newName + path.extname(input))
       }
       return input
     }

@@ -1,7 +1,7 @@
 {
   "name": "hideout",
-  "version": "0.5.0",
-  "description": "General purpose file operations",
+  "version": "0.6.0",
+  "description": "Promise based general purpose tooling library",
   "main": "hideout.js",
   "bin": {
     "hideout": "bin/hideout.js"
@@ -14,13 +14,14 @@
   },
   "keywords": [
     "scaffolding",
-    "promise"
+    "tasks"
   ],
   "author": "Nagy Zoltan <tunderdomb@gmail.com> (tunderdomb)",
   "license": "MIT",
   "dependencies": {
     "async": "^1.5.2",
     "chalk": "^1.1.1",
+    "es6-promise": "^3.0.2",
     "glob": "^6.0.4",
     "inquirer": "^0.11.2",
     "minimatch": "^3.0.0",
