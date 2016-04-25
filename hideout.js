@@ -27,20 +27,21 @@ hideout.util.path = require("./src/util/path")
 hideout.util.src = require("./src/util/src")
 hideout.util.resolutionCallback = require("./src/util/resolutionCallback")
 hideout.util.logger = require("./src/util/logger")
+hideout.util.convertToPromise = require("./src/util/convertToPromise")
 
 function use(src) {
-  try {
-    switch (typeof src) {
-      case "string":
-        require(src)(hideout)
-        break
-      case "function":
-        src(hideout)
-        break
+    try {
+        switch (typeof src) {
+            case "string":
+                require(src)(hideout)
+                break
+            case "function":
+                src(hideout)
+                break
+        }
     }
-  }
-  catch (e) {
-    console.log("Missing/invalid module %s", src)
-    throw e
-  }
+    catch (e) {
+        console.log("Missing/invalid module %s", src)
+        throw e
+    }
 }
