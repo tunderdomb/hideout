@@ -46,7 +46,7 @@ module.exports = plugin({
     encoding = encoding || "utf8"
     return function(resolve, reject) {
       if (Array.isArray(paths)) {
-        async.each(paths, function(p, next) {
+        async.map(paths, function(p, next) {
           fs.readFile(p, encoding, next)
         }, resolutionCallback(resolve, reject))
       }

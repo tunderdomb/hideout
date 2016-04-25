@@ -1,6 +1,6 @@
 {
   "name": "hideout",
-  "version": "0.6.0",
+  "version": "0.6.1",
   "description": "Promise based general purpose tooling library",
   "main": "hideout.js",
   "bin": {
