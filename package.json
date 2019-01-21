@@ -13,7 +13,7 @@
   "author": "Nagy Zoltan <tunderdomb@gmail.com> (tunderdomb)",
   "license": "MIT",
   "dependencies": {
-    "async": "^1.5.2",
+    "async": "^2.6.1",
     "chalk": "^2.4.2",
     "es6-promise": "^3.0.2",
     "glob": "^6.0.4",
