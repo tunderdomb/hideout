@@ -14,7 +14,7 @@ module.exports = plugin({
   },
   prompt: function(questions) {
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers)
       })
     }
@@ -26,7 +26,7 @@ module.exports = plugin({
     questions.message = message
     questions.default = defaultValue
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers.value)
       })
     }
@@ -38,7 +38,7 @@ module.exports = plugin({
     questions.message = message
     questions.default = defaultValue
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers.value)
       })
     }
@@ -51,7 +51,7 @@ module.exports = plugin({
     questions.choices = choices
     questions.default = defaultValue
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers.value)
       })
     }
@@ -64,7 +64,7 @@ module.exports = plugin({
     questions.choices = choices
     questions.default = defaultValue
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers.value)
       })
     }
@@ -75,7 +75,7 @@ module.exports = plugin({
     questions.name = "value"
     questions.message = message
     return function(resolve/*, reject*/) {
-      inquirer.prompt(questions, function(answers) {
+      inquirer.prompt(questions).then(function(answers) {
         resolve(answers.value)
       })
     }
