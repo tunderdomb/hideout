@@ -1,5 +1,3 @@
-require("es6-promise").polyfill()
-
 var fs = require("./fs")
 var json = require("../transforms/json")
 var pathUtils = require("../util/path")

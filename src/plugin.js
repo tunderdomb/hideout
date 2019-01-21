@@ -1,5 +1,3 @@
-require("es6-promise").polyfill()
-
 module.exports = function(methods) {
   var plugin = {}
 
